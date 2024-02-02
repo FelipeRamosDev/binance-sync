@@ -1,14 +1,15 @@
-import BinanceService from './index';
+import BinanceService from './BinanceSync';
 import MarginCall from '../../models/binance/userDataEvents/MarginCall';
 import AccountUpdate from '../../models/binance/userDataEvents/AccountUpdate';
 import OrderUpdate from '../../models/binance/userDataEvents/OrderUpdate';
 import AccountConfigUpdate from '../../models/binance/userDataEvents/AccountConfigUpdate';
 import UserStream from '../../models/binance/userDataEvents/UserStream';
+import { urls } from '../configs.json';
 
 /**
  * Representing BinanceStreams, a class with to handle WebSockets streams on Binance API.
  */
-class BinanceStreams {
+export default class BinanceStreams {
     /**
      * Create a BinanceStreams.
      * @param {BinanceService} parentService - The parent BinanceService object.
@@ -25,7 +26,7 @@ class BinanceStreams {
         }
 
         this._parentService = () => parentService;
-        this.wsBaseURL = wsBaseURL || 'wss://fstream.binance.com/ws';
+        this.wsBaseURL = wsBaseURL || urls.futuresBaseStream;
     }
 
     /**
@@ -139,5 +140,3 @@ class BinanceStreams {
         }
     }
 }
-
-module.exports = BinanceStreams;

@@ -1,11 +1,8 @@
-import Binance from 'node-binance-api';
-import SafeValue from '4hands-api/src/models/collections/SafeValue';
-import AccountInfo from './AccountInfo';
 import BinanceStreams from './BinanceStreams';
 import AJAX from './BinanceAJAX';
 import BinanceWS from './BinanceWS';
 
-class BinanceService {
+export default class BinanceSync {
     constructor(API_KEY, SECRET_KEY) {
         try {
             this._API_KEY = () => API_KEY;
@@ -13,15 +10,6 @@ class BinanceService {
 
             this.reqHTTP = new AJAX(this.API_KEY, this.SECRET_KEY);
             this.webSocket = new BinanceWS(this);
-            this.binanceAPI = new Binance().options({
-                APIKEY: this.API_KEY,
-                SECRETKEY: this.SECRET_KEY,
-                useServerTime: true,
-                recvWindow: 60000, // Set a higher recvWindow to increase response timeout
-                verbose: true, // Add extra output when subscribing to WebSockets, etc
-            });
-
-            this.accountInfo = new AccountInfo(this);
         } catch (err) {
             throw new Error.Log(err);
         }
@@ -195,5 +183,3 @@ class BinanceService {
         }
     }
 }
-
-module.exports = BinanceService;
