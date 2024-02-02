@@ -1,5 +1,5 @@
-const { Axios } = require('axios');
-const _crypto = require('crypto');
+import { Axios } from 'axios';
+import _crypto from 'crypto';
 
 class BinanceAJAX extends Axios {
     constructor(API_KEY, API_SECRET, config) {

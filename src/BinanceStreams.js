@@ -1,9 +1,9 @@
-const BinanceService = require('./index');
-const MarginCall = require('../../models/binance/userDataEvents/MarginCall');
-const AccountUpdate = require('../../models/binance/userDataEvents/AccountUpdate');
-const OrderUpdate = require('../../models/binance/userDataEvents/OrderUpdate');
-const AccountConfigUpdate = require('../../models/binance/userDataEvents/AccountConfigUpdate');
-const UserStream = require('../../models/binance/userDataEvents/UserStream');
+import BinanceService from './index';
+import MarginCall from '../../models/binance/userDataEvents/MarginCall';
+import AccountUpdate from '../../models/binance/userDataEvents/AccountUpdate';
+import OrderUpdate from '../../models/binance/userDataEvents/OrderUpdate';
+import AccountConfigUpdate from '../../models/binance/userDataEvents/AccountConfigUpdate';
+import UserStream from '../../models/binance/userDataEvents/UserStream';
 
 /**
  * Representing BinanceStreams, a class with to handle WebSockets streams on Binance API.
