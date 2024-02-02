@@ -1,12 +1,12 @@
-const UserDataEvent = require('../UserDataEvent');
-const OrderData = require('./OrderData');
+import UserDataEvent from '../UserDataEvent';
+import OrderData from './OrderData';
 
 /**
  * Represents an update to an order as a user data event.
  * @class OrderUpdate
  * @extends UserDataEvent
  */
-class OrderUpdate extends UserDataEvent {
+export default class OrderUpdate extends UserDataEvent {
     /**
      * Creates an instance of OrderUpdate.
      * @param {Object} setup - The setup object containing order update properties.
@@ -31,5 +31,3 @@ class OrderUpdate extends UserDataEvent {
         }
     }
 }
-
-module.exports = OrderUpdate;

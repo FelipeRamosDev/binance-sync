@@ -1,5 +1,4 @@
-const Candlestick = require('./Candlestick');
-const ValidateSchema = require('../../validation/validateSchema');
+import Candlestick from './Candlestick';
 
 class KlineStreamModel {
     constructor({
@@ -100,7 +99,7 @@ class CandlestickHistory {
     }
 }
 
-class FuturesChartWS extends ValidateSchema {
+class FuturesChartWS {
     constructor(symbol, interval, history, slotsInUse){
         try {
             super({
@@ -115,8 +114,6 @@ class FuturesChartWS extends ValidateSchema {
             this.symbol = symbol;
             this.interval = interval;
             this.slotsInUse = slotsInUse || {};
-
-            if (this.validate()) throw new Error.Log(this.validationResult);
         } catch(err) {
             throw new Error.Log(err).append('candles.chart.validation.required_param');
         }

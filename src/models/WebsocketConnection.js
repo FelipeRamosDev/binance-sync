@@ -1,33 +1,15 @@
-const ValidateSchema = require('../../validation/validateSchema');
+export default class WebsocketConnection {
+    constructor(setup){
+        const { asset, interval, market, limit } = Object(setup);
 
-class WebsocketConnection extends ValidateSchema {
-    constructor(setup = {
-        asset: '',
-        interval: '',
-        market: '',
-        limit: 0
-    }){
         try {
-            super({
-                asset: { type: String, required: true },
-                interval: { type: String, required: true },
-                endpoint: { type: String },
-                market: { type: String, default: 'futures' },
-                limit: { type: Number, default: 99 }
-            });
-    
-            this.asset = setup.asset;
-            this.interval = setup.interval;
+            this.asset = asset;
+            this.interval = interval;
             this.endpoint = `${this.asset.toLowerCase()}@kline_${this.interval}`;
-            this.market = setup.market;
-            this.limit = setup.limit;
-    
-            this.placeDefault();
-            if (this.validate()) throw new Error.Log(this.validationResult);
+            this.market = market;
+            this.limit = limit;
         } catch(err) {
             throw new Error.Log(err);
         }
     }
 }
-
-module.exports = WebsocketConnection;

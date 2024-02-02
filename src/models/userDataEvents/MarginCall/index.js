@@ -1,12 +1,12 @@
-const UserDataEvent = require('../UserDataEvent');
-const MarginCallPosition = require('./MarginCallPosition');
+import UserDataEvent from '../UserDataEvent';
+import MarginCallPosition from './MarginCallPosition';
 
 /**
  * Represents a margin call event, including information about cross wallet balance and positions involved.
  * @class MarginCall
  * @extends UserDataEvent
  */
-class MarginCall extends UserDataEvent {
+export default class MarginCall extends UserDataEvent {
     /**
      * Creates an instance of MarginCall.
      * @param {Object} setup - The setup object containing margin call event properties.
@@ -38,5 +38,3 @@ class MarginCall extends UserDataEvent {
         }
     }
 }
-
-module.exports = MarginCall;

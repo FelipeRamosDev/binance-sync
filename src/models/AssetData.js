@@ -1,4 +1,4 @@
-class AssetData {
+export default class AssetData {
     constructor({
         filters
     }) {
@@ -62,5 +62,3 @@ class AssetData {
         return this.quantityPrecision;
     }
 }
-
-module.exports = AssetData;

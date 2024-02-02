@@ -2,7 +2,7 @@
  * Represents balance information in an account.
  * @class Balance
  */
-class Balance {
+export default class Balance {
     /**
      * Creates an instance of Balance.
      * @param {Object} setup - The setup object containing balance properties.
@@ -50,5 +50,3 @@ class Balance {
         }
     }
 }
-
-module.exports = Balance;

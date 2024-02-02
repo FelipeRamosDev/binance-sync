@@ -1,12 +1,12 @@
-const UserDataEvent = require('../UserDataEvent');
-const AccountConfig = require('./AccountConfig');
+import UserDataEvent from '../UserDataEvent';
+import AccountConfig from './AccountConfig';
 
 /**
  * Represents an update to the account configuration as a user data event.
  * @class AccountConfigUpdate
  * @extends UserDataEvent
  */
-class AccountConfigUpdate extends UserDataEvent {
+export default class AccountConfigUpdate extends UserDataEvent {
     /**
      * Creates an instance of AccountConfigUpdate.
      * @param {Object} setup - The setup object containing account configuration update properties.
@@ -31,5 +31,3 @@ class AccountConfigUpdate extends UserDataEvent {
         }
     }
 }
-
-module.exports = AccountConfigUpdate;
