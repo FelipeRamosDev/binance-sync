@@ -32,8 +32,10 @@ module.exports = class BinanceAJAX extends Axios {
 
         Object.keys(Object(params)).map(key => queryString.set(key, params[key]));
 
-        const signature = _crypto.createHmac('sha256', this.apiSecret).update(queryString.toString()).digest('hex');
-        queryString.set('signature', signature);
+        if (!this.apiKey || !this.apiSecret) {
+            const signature = _crypto.createHmac('sha256', this.apiSecret).update(queryString.toString()).digest('hex');
+            queryString.set('signature', signature);
+        }
         
         return endpoint + '?' + queryString.toString();
     }
