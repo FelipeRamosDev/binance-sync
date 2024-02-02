@@ -1,7 +1,7 @@
-import WebSocket from 'ws';
-import { urls } from '../configs.json';
+const WebSocket  = require('ws');
+const { urls }  = require('../configs.json');
 
-export default class BinanceWS {
+module.exports = class BinanceWS {
     constructor(parentService, configs) {
         try {
             const { baseURL } = Object(configs);
@@ -76,12 +76,14 @@ export default class BinanceWS {
             });
 
             ws.on('error', (err) => {
-                if (typeof error === 'function') {
-                    if (typeof err === 'string') {
-                        error(JSON.parse(err));
-                    } else {
-                        error(err);
-                    }
+                if (typeof error !== 'function') {
+                    return;
+                }
+
+                if (typeof err === 'string') {
+                    error(JSON.parse(err));
+                } else {
+                    error(err);
                 }
             });
 

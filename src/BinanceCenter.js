@@ -1,10 +1,10 @@
-import Binance from 'node-binance-api';
-import {Axios} from 'axios';
-import exchangesConfig from '../../../exchange-config.json';
-import AssetData from './models/AssetData';
-import futuresLeverage from '../../../futures-leverage.json';
+const Binance  = require('node-binance-api');
+const {Axios}  = require('axios');
+const exchangesConfig  = require('../../../exchange-config.json');
+const AssetData  = require('./models/AssetData');
+const futuresLeverage  = require('../../../futures-leverage.json');
 
-export default class BinanceCenter {
+module.exports = class BinanceCenter {
     constructor() {
         this.configs = exchangesConfig.binance;
         this.futuresSymbols = [];

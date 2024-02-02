@@ -1,10 +1,10 @@
-import BinanceAJAX from './src/BinanceAJAX';
-import BinanceStreams from './src/BinanceStreams';
-import BinanceWS from './src/BinanceWS';
-import BinanceSync from './src/BinanceSync';
+const BinanceAJAX  = require('./src/BinanceAJAX');
+const BinanceStreams  = require('./src/BinanceStreams');
+const BinanceWS  = require('./src/BinanceWS');
+const BinanceSync  = require('./src/BinanceSync');
 
 BinanceSync.BinanceAJAX = BinanceAJAX;
 BinanceSync.BinanceStreams = BinanceStreams;
 BinanceSync.BinanceWS = BinanceWS;
 
-export default BinanceSync;
+module.exports = BinanceSync;
