@@ -1,9 +1,9 @@
 import BinanceService from './BinanceSync';
-import MarginCall from '../../models/binance/userDataEvents/MarginCall';
-import AccountUpdate from '../../models/binance/userDataEvents/AccountUpdate';
-import OrderUpdate from '../../models/binance/userDataEvents/OrderUpdate';
-import AccountConfigUpdate from '../../models/binance/userDataEvents/AccountConfigUpdate';
-import UserStream from '../../models/binance/userDataEvents/UserStream';
+import MarginCall from './models/userDataEvents/MarginCall';
+import AccountUpdate from './models/userDataEvents/AccountUpdate';
+import OrderUpdate from './models/userDataEvents/OrderUpdate';
+import AccountConfigUpdate from './models/userDataEvents/AccountConfigUpdate';
+import UserStream from './models/userDataEvents/UserStream';
 import { urls } from '../configs.json';
 
 /**
