@@ -1,15 +1,15 @@
-import BinanceService from './BinanceSync';
-import MarginCall from './models/userDataEvents/MarginCall';
-import AccountUpdate from './models/userDataEvents/AccountUpdate';
-import OrderUpdate from './models/userDataEvents/OrderUpdate';
-import AccountConfigUpdate from './models/userDataEvents/AccountConfigUpdate';
-import UserStream from './models/userDataEvents/UserStream';
-import { urls } from '../configs.json';
+const BinanceService  = require('./BinanceSync');
+const MarginCall  = require('./models/userDataEvents/MarginCall');
+const AccountUpdate  = require('./models/userDataEvents/AccountUpdate');
+const OrderUpdate  = require('./models/userDataEvents/OrderUpdate');
+const AccountConfigUpdate  = require('./models/userDataEvents/AccountConfigUpdate');
+const UserStream  = require('./models/userDataEvents/UserStream');
+const { urls }  = require('../configs.json');
 
 /**
  * Representing BinanceStreams, a class with to handle WebSockets streams on Binance API.
  */
-export default class BinanceStreams {
+module.exports = class BinanceStreams {
     /**
      * Create a BinanceStreams.
      * @param {BinanceService} parentService - The parent BinanceService object.

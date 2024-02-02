@@ -2,7 +2,7 @@
  * Represents a configuration for an account.
  * @class AccountConfig
  */
-export default class AccountConfig {
+module.exports = class AccountConfig {
     /**
      * Creates an instance of AccountConfig.
      * @param {Object} setup - The setup object containing account configuration properties.

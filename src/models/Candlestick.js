@@ -1,7 +1,7 @@
 /**
  * A class representing a Candlestick for financial data.
  */
-export default class Candlestick {
+module.exports = class Candlestick {
     /**
      * Constructs a new Candlestick object.
      * @param {Object} setup - The configuration object for the candlestick.

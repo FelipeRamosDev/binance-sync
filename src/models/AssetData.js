@@ -1,4 +1,4 @@
-export default class AssetData {
+module.exports = class AssetData {
     constructor({
         filters
     }) {

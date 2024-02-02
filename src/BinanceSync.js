@@ -1,8 +1,8 @@
-import BinanceStreams from './BinanceStreams';
-import AJAX from './BinanceAJAX';
-import BinanceWS from './BinanceWS';
+const BinanceStreams  = require('./BinanceStreams');
+const AJAX  = require('./BinanceAJAX');
+const BinanceWS  = require('./BinanceWS');
 
-export default class BinanceSync {
+module.exports = class BinanceSync {
     constructor(API_KEY, SECRET_KEY) {
         try {
             this._API_KEY = () => API_KEY;
@@ -105,7 +105,7 @@ export default class BinanceSync {
 
     async futuresChart(symbol, interval, options) {
         const { startTime, endTime, limit } = Object(options); 
-        const Candlestick = require('../../models/Candlestick');
+        const Candlestick = require('./models/Candlestick');
 
         try {
             const candles = await this.reqHTTP.GET('/fapi/v1/klines', {

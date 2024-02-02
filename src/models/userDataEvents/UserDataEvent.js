@@ -2,7 +2,7 @@
  * Represents a user data event.
  * @class UserDataEvent
  */
-export default class UserDataEvent {
+module.exports = class UserDataEvent {
     /**
      * Creates an instance of UserDataEvent.
      * @param {Object} setup - The setup object containing event properties.

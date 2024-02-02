@@ -1,7 +1,6 @@
 {
   "name": "binance-sync",
   "version": "0.1.0",
-  "type": "module",
   "description": "It's a service module to interact with Binance",
   "main": "index.js",
   "scripts": {
@@ -18,7 +17,8 @@
   },
   "homepage": "https://github.com/FelipeRamosDev/binance-sync#readme",
   "dependencies": {
-    "axios": "^1.6.7"
+    "axios": "^1.6.7",
+    "ws": "^8.16.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.3"

@@ -2,7 +2,7 @@
  * Represents balance information in an account.
  * @class Balance
  */
-export default class Balance {
+module.exports = class Balance {
     /**
      * Creates an instance of Balance.
      * @param {Object} setup - The setup object containing balance properties.

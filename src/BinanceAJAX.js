@@ -1,8 +1,8 @@
-import { Axios } from 'axios';
-import _crypto from 'crypto';
-import { urls } from '../configs.json';
+const { Axios }  = require('axios');
+const _crypto  = require('crypto');
+const { urls }  = require('../configs.json');
 
-export default class BinanceAJAX extends Axios {
+module.exports = class BinanceAJAX extends Axios {
     constructor(API_KEY, API_SECRET, config) {
         super({
             headers: API_KEY && { 'X-MBX-APIKEY': API_KEY },

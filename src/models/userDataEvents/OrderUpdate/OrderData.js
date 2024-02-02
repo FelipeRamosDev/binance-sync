@@ -2,7 +2,7 @@
  * Represents data associated with an order.
  * @class OrderData
  */
-export default class OrderData {
+module.exports = class OrderData {
     /**
      * Creates an instance of OrderData.
      * @param {Object} setup - The setup object containing order data properties.
