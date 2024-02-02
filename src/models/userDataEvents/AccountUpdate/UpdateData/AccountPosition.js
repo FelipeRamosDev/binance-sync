@@ -2,7 +2,7 @@
  * Represents a position in an account.
  * @class AccountPosition
  */
-class AccountPosition {
+export default class AccountPosition {
     /**
      * Creates an instance of AccountPosition.
      * @param {Object} setup - The setup object containing account position properties.
@@ -90,5 +90,3 @@ class AccountPosition {
         }
     }
 }
-
-module.exports = AccountPosition;

@@ -1,9 +1,10 @@
-const Binance = require('node-binance-api');
-const {Axios} = require('axios');
-const exchangesConfig = require('../../../exchange-config.json');
-const AssetData = require('./AssetData');
+import Binance from 'node-binance-api';
+import {Axios} from 'axios';
+import exchangesConfig from '../../../exchange-config.json';
+import AssetData from './AssetData';
+import futuresLeverage from '../../../futures-leverage.json';
 
-class BinanceCenter {
+export default class BinanceCenter {
     constructor() {
         this.configs = exchangesConfig.binance;
         this.futuresSymbols = [];
@@ -21,7 +22,6 @@ class BinanceCenter {
     }
 
     async init() {
-        const futuresLeverage = require('../../../futures-leverage.json')
         const ajax = new Axios({ baseURL: exchangesConfig.binance.marketTypes.futures.apiFuturesHost });
         const { data } = await ajax.get('/fapi/v1/exchangeInfo');
         const parsedData = JSON.parse(data);
@@ -59,5 +59,3 @@ class BinanceCenter {
         return this.futuresSymbols.map(asset => asset.symbol);
     }
 }
-
-module.exports = BinanceCenter;

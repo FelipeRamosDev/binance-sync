@@ -6,7 +6,7 @@ const UserDataEvent = require('../UserDataEvent');
  * @class AccountUpdateEvent
  * @extends UserDataEvent
  */
-class AccountUpdateEvent extends UserDataEvent {
+export default class AccountUpdateEvent extends UserDataEvent {
     /**
      * Creates an instance of AccountUpdateEvent.
      * @param {Object} setup - The setup object containing account update event properties.
@@ -27,5 +27,3 @@ class AccountUpdateEvent extends UserDataEvent {
         this.updateData = new UpdateData(a);
     }
 }
-
-module.exports = AccountUpdateEvent;

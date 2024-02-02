@@ -1,4 +1,4 @@
-class UserStream {
+export default class UserStream {
     constructor(setup) {
         try {
             const { ws, listeners } = Object(setup);
@@ -10,5 +10,3 @@ class UserStream {
         }
     }
 }
-
-module.exports = UserStream;

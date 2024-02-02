@@ -1,11 +1,8 @@
-class BinanceConfig {
-    constructor(setup = {
-        APIKEY: '',
-        APISECRET: ''
-    }){
-        this.APIKEY = setup.APIKEY;
-        this.APISECRET = setup.APISECRET;
+export default class BinanceConfig {
+    constructor(setup) {
+        const { APIKEY, APISECRET } = Object(setup);
+
+        this.APIKEY = APIKEY;
+        this.APISECRET = APISECRET;
     }
 }
-
-module.exports = BinanceConfig;

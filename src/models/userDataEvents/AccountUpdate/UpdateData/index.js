@@ -1,11 +1,11 @@
-const Balance = require('./Balance');
-const AccountPosition = require('./AccountPosition');
+import Balance from './Balance';
+import AccountPosition from './AccountPosition';
 
 /**
  * Represents an update data event, including information about balances and account positions.
  * @class UpdateData
  */
-class UpdateData {
+export default class UpdateData {
     /**
      * Creates an instance of UpdateData.
      * @param {Object} setup - The setup object containing update data properties.
@@ -45,5 +45,3 @@ class UpdateData {
         }
     }
 }
-
-module.exports = UpdateData;
