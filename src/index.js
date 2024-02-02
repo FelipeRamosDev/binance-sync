@@ -1,20 +1,16 @@
-const Binance = require('node-binance-api');
-const SafeValue = require('4hands-api/src/models/collections/SafeValue');
-const AccountInfo = require('./AccountInfo');
-const BinanceStreams = require('./BinanceStreams');
-const AJAX = require('./BinanceAJAX');
-const BinanceWS = require('./BinanceWS');
+import Binance from 'node-binance-api';
+import SafeValue from '4hands-api/src/models/collections/SafeValue';
+import AccountInfo from './AccountInfo';
+import BinanceStreams from './BinanceStreams';
+import AJAX from './BinanceAJAX';
+import BinanceWS from './BinanceWS';
 
 class BinanceService {
-    constructor(master) {
-        const MasterAccountLIVE = require('../../models/MasterAccountLIVE');
-        
+    constructor(API_KEY, SECRET_KEY) {
         try {
-            if (!(master instanceof MasterAccountLIVE)) {
-                throw new Error.Log('common.missing_param', 'user', 'BinanceService');
-            }
-            
-            this._master = () => master;
+            this._API_KEY = () => API_KEY;
+            this._SECRET_KEY = () => SECRET_KEY;
+
             this.reqHTTP = new AJAX(this.API_KEY, this.SECRET_KEY);
             this.webSocket = new BinanceWS(this);
             this.binanceAPI = new Binance().options({
@@ -31,24 +27,12 @@ class BinanceService {
         }
     }
 
-    get master() {
-        return this._master();
-    }
-
     get API_KEY() {
-        const apiKey = this.master?.user?.auth?.binanceAPIKey;
-
-        if (apiKey instanceof SafeValue) {
-            return apiKey.read();
-        }
+        return this._API_KEY();
     }
 
     get SECRET_KEY() {
-        const secretKey = this.master?.user?.auth?.binanceSecretKey;
-
-        if (secretKey instanceof SafeValue) {
-            return secretKey.read();
-        }
+        return this._SECRET_KEY();
     }
 
     get streams() {

@@ -1,4 +1,4 @@
-const {KlineStreamModel, CandlestickHistory, FuturesChartWS} = require('../../models/binance/Kline');
+import { KlineStreamModel, CandlestickHistory, FuturesChartWS } from '../../models/binance/Kline';
 
 let history = {};
 
