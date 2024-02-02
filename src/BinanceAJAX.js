@@ -1,11 +1,12 @@
 import { Axios } from 'axios';
 import _crypto from 'crypto';
+import { urls } from '../configs.json';
 
-class BinanceAJAX extends Axios {
+export default class BinanceAJAX extends Axios {
     constructor(API_KEY, API_SECRET, config) {
         super({
             headers: API_KEY && { 'X-MBX-APIKEY': API_KEY },
-            baseURL: 'https://fapi.binance.com',
+            baseURL: urls.futuresBase,
             ...config
         });
 
@@ -81,5 +82,3 @@ class BinanceAJAX extends Axios {
         }
     }
 }
-
-module.exports = BinanceAJAX;

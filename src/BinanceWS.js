@@ -1,12 +1,13 @@
 import WebSocket from 'ws';
+import { urls } from '../configs.json';
 
-class BinanceWS {
+export default class BinanceWS {
     constructor(parentService, configs) {
         try {
             const { baseURL } = Object(configs);
 
             this._parentService = () => parentService;
-            this.baseURL = baseURL || 'wss://fstream.binance.com/ws';
+            this.baseURL = baseURL || urls.futuresBaseStream;
         } catch (err) {
             throw new Error.Log(err);
         }
@@ -102,5 +103,3 @@ class BinanceWS {
         }
     }
 }
-
-module.exports = BinanceWS;
