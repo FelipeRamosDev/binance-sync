@@ -1,0 +1,215 @@
+const Binance = require('node-binance-api');
+const SafeValue = require('4hands-api/src/models/collections/SafeValue');
+const AccountInfo = require('./AccountInfo');
+const BinanceStreams = require('./BinanceStreams');
+const AJAX = require('./BinanceAJAX');
+const BinanceWS = require('./BinanceWS');
+
+class BinanceService {
+    constructor(master) {
+        const MasterAccountLIVE = require('../../models/MasterAccountLIVE');
+        
+        try {
+            if (!(master instanceof MasterAccountLIVE)) {
+                throw new Error.Log('common.missing_param', 'user', 'BinanceService');
+            }
+            
+            this._master = () => master;
+            this.reqHTTP = new AJAX(this.API_KEY, this.SECRET_KEY);
+            this.webSocket = new BinanceWS(this);
+            this.binanceAPI = new Binance().options({
+                APIKEY: this.API_KEY,
+                SECRETKEY: this.SECRET_KEY,
+                useServerTime: true,
+                recvWindow: 60000, // Set a higher recvWindow to increase response timeout
+                verbose: true, // Add extra output when subscribing to WebSockets, etc
+            });
+
+            this.accountInfo = new AccountInfo(this);
+        } catch (err) {
+            throw new Error.Log(err);
+        }
+    }
+
+    get master() {
+        return this._master();
+    }
+
+    get API_KEY() {
+        const apiKey = this.master?.user?.auth?.binanceAPIKey;
+
+        if (apiKey instanceof SafeValue) {
+            return apiKey.read();
+        }
+    }
+
+    get SECRET_KEY() {
+        const secretKey = this.master?.user?.auth?.binanceSecretKey;
+
+        if (secretKey instanceof SafeValue) {
+            return secretKey.read();
+        }
+    }
+
+    get streams() {
+        return new BinanceStreams(this);
+    }
+
+    async exchangeInfo() {
+        try {
+            return await this.reqHTTP.GET('/fapi/v1/exchangeInfo');
+        } catch (err) {
+            throw new Error.Log(err);
+        }
+    }
+
+    async changeLeverage(symbol, leverage) {
+        try {
+            if (isNaN(leverage) || leverage < 1 || leverage > 120) {
+                leverage = 1;
+            } else {
+                leverage = Number(leverage);
+            }
+
+            return await this.reqHTTP.POST('/fapi/v1/leverage', { symbol, leverage });
+        } catch (err) {
+            throw new Error.Log(err);
+        }
+    }
+
+    async changeMarginType(symbol, marginType) {
+        try {
+            if (marginType !== 'ISOLATED' && marginType !== 'CROSSED') {
+                marginType = 'ISOLATED';
+            }
+
+            return await this.reqHTTP.POST('/fapi/v1/marginType', { symbol, marginType });
+        } catch (err) {
+            throw new Error.Log(err);
+        }
+    }
+    
+    async leverageBrackets(symbol) {
+        let response;
+
+        try {
+            if (symbol) {
+                response = await this.reqHTTP.GET('/fapi/v1/leverageBracket', { symbol });
+            } else {
+                response = await this.reqHTTP.GET('/fapi/v1/leverageBracket');
+            }
+
+            if (response.code) {
+                throw new Error.Log({ name: response.code, message: response.msg });
+            }
+
+            if (Array.isArray(response)) {
+                response.map(item => {
+                    item.maxLeverage = item.brackets[0].initialLeverage;
+                });
+            }
+
+            return response;
+        } catch (err) {
+            throw new Error.Log(err);
+        }
+    }
+
+    async futuresAccountInfo() {
+        try {
+            return await this.reqHTTP.GET('/fapi/v2/account');
+        } catch (err) {
+            throw new Error.Log(err);
+        }
+    }
+
+    async futuresAccountBalance() {
+        try {
+            return await this.reqHTTP.GET('/fapi/v2/balance');
+        } catch (err) {
+            throw new Error.Log(err);
+        }
+    }
+
+    async futuresChart(symbol, interval, options) {
+        const { startTime, endTime, limit } = Object(options); 
+        const Candlestick = require('../../models/Candlestick');
+
+        try {
+            const candles = await this.reqHTTP.GET('/fapi/v1/klines', {
+                symbol,
+                interval,
+                startTime,
+                endTime,
+                limit
+            });
+
+            if (!Array.isArray(candles)) {
+                return new Error.Log({ name: candles.code, message: candles.code });
+            }
+
+            return candles.map(candle => new Candlestick({
+                symbol,
+                interval,
+                openTime: candle[0],
+                open: candle[1],
+                high: candle[2],
+                low: candle[3],
+                close: candle[4],
+                volume: candle[5],
+                closeTime: candle[6],
+                isCandleClosed: true,
+                formatDate: true
+            }));
+        } catch (err) {
+            throw new Error.Log(err);
+        }
+    }
+
+    async newOrder(symbol, side, type, params) {
+        try {
+            const newOrder = await this.reqHTTP.POST('/fapi/v1/order', {
+                symbol,
+                side,
+                type,
+                ...params
+            });
+
+            return newOrder;
+        } catch (err) {
+            throw new Error.Log(err);
+        }
+    }
+
+    async cancelOrder(symbol, clientOrderId) {
+        try {
+            const cancelled = await this.reqHTTP.DELETE('/fapi/v1/order', { symbol, origClientOrderId: clientOrderId });
+
+            if (cancelled.code && cancelled.msg) {
+                return new Error.Log({ name: cancelled.code, message: cancelled.msg});
+            }
+
+            return cancelled;
+        } catch (err) {
+            return new Error.Log(err);
+        }
+    }
+
+    async cancelMultipleOrders(symbol, orderIds) {
+        try {
+            return await this.reqHTTP.DELETE('/fapi/v1/batchOrders', { symbol, orderidlist: orderIds });
+        } catch (err) {
+            throw new Error.Log(err);
+        }
+    }
+
+    async cancelAllOrdersOfAsset(symbol) {
+        try {
+            return this.reqHTTP.DELETE('/fapi/v1/allOpenOrders', { symbol });
+        } catch (err) {
+            throw new Error.Log(err);
+        }
+    }
+}
+
+module.exports = BinanceService;
