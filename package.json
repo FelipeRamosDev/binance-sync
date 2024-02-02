@@ -1,0 +1,26 @@
+{
+  "name": "binance-sync",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "It's a service module to interact with Binance",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FelipeRamosDev/binance-sync.git"
+  },
+  "author": "Felipe Ramos",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/FelipeRamosDev/binance-sync/issues"
+  },
+  "homepage": "https://github.com/FelipeRamosDev/binance-sync#readme",
+  "dependencies": {
+    "axios": "^1.6.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
+}
