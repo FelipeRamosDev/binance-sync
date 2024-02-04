@@ -1,12 +1,12 @@
 const { Axios }  = require('axios');
 const _crypto  = require('crypto');
-const { urls }  = require('../configs.json');
+const appConfigs  = require('../configs.json');
 
 module.exports = class BinanceAJAX extends Axios {
     constructor(API_KEY, API_SECRET, config) {
         super({
             headers: API_KEY && { 'X-MBX-APIKEY': API_KEY },
-            baseURL: urls.futuresBase,
+            baseURL: appConfigs?.URLS?.futuresBase,
             ...config
         });
 
@@ -24,20 +24,25 @@ module.exports = class BinanceAJAX extends Axios {
 
     async parseURL(endpoint, params) {
         const queryString = new URLSearchParams('');
-        const { data } = await this.get('/fapi/v1/time');
-        const { serverTime } = JSON.parse(data);
 
-        queryString.set('recvWindow', 60000);
-        queryString.set('timestamp', serverTime);
+        try {
+            const { data } = await this.get('/fapi/v1/time');
+            const { serverTime } = JSON.parse(data);
 
-        Object.keys(Object(params)).map(key => queryString.set(key, params[key]));
-
-        if (!this.apiKey || !this.apiSecret) {
-            const signature = _crypto.createHmac('sha256', this.apiSecret).update(queryString.toString()).digest('hex');
-            queryString.set('signature', signature);
+            queryString.set('recvWindow', 60000);
+            queryString.set('timestamp', serverTime);
+    
+            Object.keys(Object(params)).map(key => queryString.set(key, params[key]));
+    
+            if (this.apiKey && this.apiSecret) {
+                const signature = _crypto.createHmac('sha256', this.apiSecret).update(queryString.toString()).digest('hex');
+                queryString.set('signature', signature);
+            }
+            
+            return endpoint + '?' + queryString.toString();
+        } catch (err) {
+            throw err;
         }
-        
-        return endpoint + '?' + queryString.toString();
     }
 
     async GET(endpoint, params) {
@@ -47,7 +52,7 @@ module.exports = class BinanceAJAX extends Axios {
 
             return JSON.parse(Object(result.data));
         } catch (err) {
-            throw new Error.Log(err);
+            throw err;
         }
     }
 
@@ -58,7 +63,7 @@ module.exports = class BinanceAJAX extends Axios {
 
             return JSON.parse(Object(result.data));
         } catch (err) {
-            throw new Error.Log(err);
+            throw err;
         }
     }
 
@@ -69,7 +74,7 @@ module.exports = class BinanceAJAX extends Axios {
 
             return JSON.parse(Object(result.data));
         } catch (err) {
-            throw new Error.Log(err);
+            throw err;
         }
     }
 
@@ -80,7 +85,7 @@ module.exports = class BinanceAJAX extends Axios {
 
             return JSON.parse(Object(result.data));
         } catch (err) {
-            throw new Error.Log(err);
+            throw err;
         }
     }
 }

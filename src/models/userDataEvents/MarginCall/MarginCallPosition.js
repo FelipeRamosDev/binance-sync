@@ -69,7 +69,7 @@ module.exports = class MarginCallPosition {
             this.marginRequired = Number(mm);
         } catch (err) {
             // Throws an error if there is an issue during setup.
-            throw new Error.Log(err);
+            throw new Error(err);
         }
     }
 }

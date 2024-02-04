@@ -4,7 +4,7 @@ const AccountUpdate  = require('./models/userDataEvents/AccountUpdate');
 const OrderUpdate  = require('./models/userDataEvents/OrderUpdate');
 const AccountConfigUpdate  = require('./models/userDataEvents/AccountConfigUpdate');
 const UserStream  = require('./models/userDataEvents/UserStream');
-const { urls }  = require('../configs.json');
+const appConfigs  = require('../configs.json');
 
 /**
  * Representing BinanceStreams, a class with to handle WebSockets streams on Binance API.
@@ -19,14 +19,11 @@ module.exports = class BinanceStreams {
         const { wsBaseURL } = Object(configs);
 
         if (!parentService) {
-            throw new Error.Log({
-                name: 'BINANCE_MAIN_SERVICE_REQUIRED',
-                message: `The BinanceService, the parent service form BinanceStreams is required to instantiate the class.`
-            })
+            throw new Error({ message: `The BinanceService, the parent service form BinanceStreams is required to instantiate the class.` });
         }
 
         this._parentService = () => parentService;
-        this.wsBaseURL = wsBaseURL || urls.futuresBaseStream;
+        this.wsBaseURL = wsBaseURL || appConfigs?.URLS?.futuresBaseStream;
     }
 
     /**
@@ -62,13 +59,13 @@ module.exports = class BinanceStreams {
      * @param {Function} callbacks.data - Callback function for "data" callback. Receives one argument with the data object.
      * @param {Function} callbacks.close - Callback function for "close" callback. It won't receive any argument.
      * @return {WebSocket} A WebSocket object with the connection.
-     * @throws {Error} Will throw an error if the response does not contain a listen key or if the response is an instance of Error.Log.
+     * @throws {Error} Will throw an error if the response does not contain a listen key or if the response is an instance of Error.
      */
     async userData(callbacks) {
         const { open, error, data, close } = Object(callbacks);
 
         try {
-            const ws = await this.parentService.webSocket.connect({
+            const ws = await this.parentService.webSocket.subscribe({
                 callbacks: {
                     open,
                     close,
@@ -101,7 +98,7 @@ module.exports = class BinanceStreams {
 
             return new UserStream({ ws });
         } catch (err) {
-            throw new Error.Log(err);
+            throw err;
         }
     }
 
@@ -115,7 +112,7 @@ module.exports = class BinanceStreams {
 
             return closed;
         } catch (err) {
-            throw new Error.Log(err);
+            throw err;
         }
     }
 
@@ -123,7 +120,7 @@ module.exports = class BinanceStreams {
         const { open, error, data, close } = Object(callbacks);
 
         try {
-            const ws = await this.parentService.webSocket.connect({
+            const ws = await this.parentService.webSocket.subscribe({
                 endpoint: `${symbol.toLowerCase()}@kline_${interval}`,
                 isPublic: true,
                 callbacks: {
@@ -136,7 +133,7 @@ module.exports = class BinanceStreams {
 
             return ws;
         } catch (err) {
-            throw new Error.Log(err);
+            throw err;
         }
     }
 }

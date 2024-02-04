@@ -4,7 +4,8 @@
   "description": "It's a service module to interact with Binance",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "draft": "node draft"
   },
   "repository": {
     "type": "git",

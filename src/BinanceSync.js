@@ -11,7 +11,7 @@ module.exports = class BinanceSync {
             this.reqHTTP = new AJAX(this.API_KEY, this.SECRET_KEY);
             this.webSocket = new BinanceWS(this);
         } catch (err) {
-            throw new Error.Log(err);
+            throw new Error(err);
         }
     }
 
@@ -29,9 +29,14 @@ module.exports = class BinanceSync {
 
     async exchangeInfo() {
         try {
-            return await this.reqHTTP.GET('/fapi/v1/exchangeInfo');
+            const res = await this.reqHTTP.GET('/fapi/v1/exchangeInfo');
+            if (res.code && res.msg) {
+                throw new Error({ message: `[${res.code}] ${res.msg}` });
+            }
+
+            return res;
         } catch (err) {
-            throw new Error.Log(err);
+            throw err;
         }
     }
 
@@ -43,9 +48,14 @@ module.exports = class BinanceSync {
                 leverage = Number(leverage);
             }
 
-            return await this.reqHTTP.POST('/fapi/v1/leverage', { symbol, leverage });
+            const res = await this.reqHTTP.POST('/fapi/v1/leverage', { symbol, leverage });
+            if (res.code && res.msg) {
+                throw new Error({ message: `[${res.code}] ${res.msg}` });
+            }
+
+            return res;
         } catch (err) {
-            throw new Error.Log(err);
+            throw err;
         }
     }
 
@@ -55,9 +65,14 @@ module.exports = class BinanceSync {
                 marginType = 'ISOLATED';
             }
 
-            return await this.reqHTTP.POST('/fapi/v1/marginType', { symbol, marginType });
+            const res = await this.reqHTTP.POST('/fapi/v1/marginType', { symbol, marginType });
+            if (res.code && res.msg) {
+                throw new Error({ message: `[${res.code}] ${res.msg}` });
+            }
+
+            return res;
         } catch (err) {
-            throw new Error.Log(err);
+            throw err;
         }
     }
     
@@ -71,8 +86,8 @@ module.exports = class BinanceSync {
                 response = await this.reqHTTP.GET('/fapi/v1/leverageBracket');
             }
 
-            if (response.code) {
-                throw new Error.Log({ name: response.code, message: response.msg });
+            if (response.code && response.msg) {
+                throw new Error({ message: `[${response.code}] ${response.msg}` });
             }
 
             if (Array.isArray(response)) {
@@ -83,23 +98,33 @@ module.exports = class BinanceSync {
 
             return response;
         } catch (err) {
-            throw new Error.Log(err);
+            throw err;
         }
     }
 
     async futuresAccountInfo() {
         try {
-            return await this.reqHTTP.GET('/fapi/v2/account');
+            const res = await this.reqHTTP.GET('/fapi/v2/account');
+            if (res.code && res.msg) {
+                throw new Error({ message: `[${res.code}] ${res.msg}` });
+            }
+
+            return res;
         } catch (err) {
-            throw new Error.Log(err);
+            throw err;
         }
     }
 
     async futuresAccountBalance() {
         try {
-            return await this.reqHTTP.GET('/fapi/v2/balance');
+            const res = await this.reqHTTP.GET('/fapi/v2/balance');
+            if (res.code && res.msg) {
+                throw new Error({ message: `[${res.code}] ${res.msg}` });
+            }
+
+            return res;
         } catch (err) {
-            throw new Error.Log(err);
+            throw err;
         }
     }
 
@@ -117,7 +142,7 @@ module.exports = class BinanceSync {
             });
 
             if (!Array.isArray(candles)) {
-                return new Error.Log({ name: candles.code, message: candles.code });
+                return new Error({ message: `[${candles.code}] ${candles.msg}` });
             }
 
             return candles.map(candle => new Candlestick({
@@ -134,7 +159,7 @@ module.exports = class BinanceSync {
                 formatDate: true
             }));
         } catch (err) {
-            throw new Error.Log(err);
+            throw err;
         }
     }
 
@@ -147,9 +172,13 @@ module.exports = class BinanceSync {
                 ...params
             });
 
+            if (newOrder.code && newOrder.msg) {
+                return new Error({ message: `[${newOrder.code}] ${newOrder.msg}` });
+            }
+
             return newOrder;
         } catch (err) {
-            throw new Error.Log(err);
+            throw err;
         }
     }
 
@@ -158,28 +187,38 @@ module.exports = class BinanceSync {
             const cancelled = await this.reqHTTP.DELETE('/fapi/v1/order', { symbol, origClientOrderId: clientOrderId });
 
             if (cancelled.code && cancelled.msg) {
-                return new Error.Log({ name: cancelled.code, message: cancelled.msg});
+                return new Error({ message: `[${cancelled.code}] ${cancelled.msg}` });
             }
 
             return cancelled;
         } catch (err) {
-            return new Error.Log(err);
+            return err;
         }
     }
 
     async cancelMultipleOrders(symbol, orderIds) {
         try {
-            return await this.reqHTTP.DELETE('/fapi/v1/batchOrders', { symbol, orderidlist: orderIds });
+            const res = await this.reqHTTP.DELETE('/fapi/v1/batchOrders', { symbol, orderidlist: orderIds });
+            if (res.code && res.msg) {
+                throw new Error({ message: `[${res.code}] ${res.msg}` });
+            }
+
+            return res;
         } catch (err) {
-            throw new Error.Log(err);
+            throw err;
         }
     }
 
     async cancelAllOrdersOfAsset(symbol) {
         try {
-            return this.reqHTTP.DELETE('/fapi/v1/allOpenOrders', { symbol });
+            const res = this.reqHTTP.DELETE('/fapi/v1/allOpenOrders', { symbol });
+            if (res.code && res.msg) {
+                throw new Error({ message: `[${res.code}] ${res.msg}` });
+            }
+
+            return res;
         } catch (err) {
-            throw new Error.Log(err);
+            throw err;
         }
     }
 }
