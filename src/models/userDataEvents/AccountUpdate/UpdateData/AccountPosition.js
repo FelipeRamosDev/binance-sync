@@ -2,7 +2,7 @@
  * Represents a position in an account.
  * @class AccountPosition
  */
-module.exports = class AccountPosition {
+class AccountPosition {
     /**
      * Creates an instance of AccountPosition.
      * @param {Object} setup - The setup object containing account position properties.
@@ -86,7 +86,9 @@ module.exports = class AccountPosition {
             this.positionSide = ps;
         } catch (err) {
             // Throws an error if there is an issue during setup.
-            throw new Error(err);
+            throw err;
         }
     }
 }
+
+module.exports = AccountPosition;

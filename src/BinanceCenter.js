@@ -4,7 +4,13 @@ const exchangesConfig  = require('../../../exchange-config.json');
 const AssetData  = require('./models/AssetData');
 const futuresLeverage  = require('../../../futures-leverage.json');
 
-module.exports = class BinanceCenter {
+/**
+ * BinanceCenter class for managing Binance exchange.
+ */
+class BinanceCenter {
+    /**
+     * Constructs a new BinanceCenter instance.
+     */
     constructor() {
         this.configs = exchangesConfig.binance;
         this.futuresSymbols = [];
@@ -21,6 +27,11 @@ module.exports = class BinanceCenter {
         }
     }
 
+    /**
+     * Initializes the BinanceCenter instance.
+     * @returns {Object} The success status.
+     * @throws {Error} If there is an error during initialization.
+     */
     async init() {
         const ajax = new Axios({ baseURL: exchangesConfig.binance.marketTypes.futures.apiFuturesHost });
         const { data } = await ajax.get('/fapi/v1/exchangeInfo');
@@ -42,6 +53,11 @@ module.exports = class BinanceCenter {
         return { success: true };
     }
 
+    /**
+     * Gets the asset data for the given symbols.
+     * @param {Array} symbols - The symbols to get the asset data for.
+     * @returns {Array} The asset data.
+     */
     getAssetsData(symbols) {
         if (Array.isArray(symbols) && symbols.length) {
             return this.futuresSymbols.filter(asset => symbols.find(item => item === asset.symbol));
@@ -50,12 +66,23 @@ module.exports = class BinanceCenter {
         return this.futuresSymbols;
     }
 
+    /**
+     * Gets the asset for the given symbol.
+     * @param {string} symbol - The symbol to get the asset for.
+     * @returns {Object} The asset.
+     */
     getAsset(symbol) {
         const assets = this.getAssetsData([symbol]);
         return assets.length ? assets[0] : null;
     }
 
+    /**
+     * Gets the list of symbols.
+     * @returns {Array} The list of symbols.
+     */
     getSymbolsList() {
         return this.futuresSymbols.map(asset => asset.symbol);
     }
 }
+
+module.exports = BinanceCenter;

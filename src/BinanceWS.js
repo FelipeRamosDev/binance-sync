@@ -1,7 +1,16 @@
 const WebSocket  = require('ws');
 const appConfigs  = require('../configs.json');
 
-module.exports = class BinanceWS {
+/**
+ * BinanceWS class for managing WebSocket connections on Binance API.
+ */
+class BinanceWS {
+    /**
+     * Constructs a new BinanceWS instance.
+     * @param {Object} parentService - The parent service object.
+     * @param {Object} configs - The configuration object for BinanceWS.
+     * @throws {Error} If there is an error during construction.
+     */
     constructor(parentService, configs) {
         try {
             const { baseURL } = Object(configs);
@@ -9,12 +18,12 @@ module.exports = class BinanceWS {
             this._parentService = () => parentService;
             this.baseURL = baseURL || appConfigs?.URLS?.futuresBaseStream;
         } catch (err) {
-            throw new Error(err);
+            throw err;
         }
     }
 
     /**
-     * Get the parent service.
+     * Gets the parent service.
      * @return {Object} The parent service.
      */
     get parentService() {
@@ -26,11 +35,11 @@ module.exports = class BinanceWS {
     }
     
     /**
-     * Get the listen key, required in order to open WebSockets streams.
+     * Gets the listen key, required in order to open WebSocket streams.
      * @async
      * @param {boolean} noKeepAlive - If true, the listen key will not be kept alive and it will be closed after 60 minutes (1 hour).
      * @return {string} The listen key.
-     * @throws {Error} Will throw an error if the response does not contain a listen key or if the response is an instance of Error.
+     * @throws {Error} If the response does not contain a listen key or if the response is an instance of Error.
      */
     async getListenKey(noKeepAlive) {
         try {
@@ -50,6 +59,13 @@ module.exports = class BinanceWS {
         }
     }
     
+    /**
+     * Subscribes to a WebSocket stream.
+     * @async
+     * @param {Object} params - The parameters for the subscription.
+     * @return {WebSocket} The WebSocket object with the connection.
+     * @throws {Error} If there is an error during the request.
+     */
     async subscribe(params) {
         const { endpoint, isPublic, callbacks } = Object(params);
         const { open, error, data, close } = Object(callbacks);
@@ -97,7 +113,9 @@ module.exports = class BinanceWS {
 
             return ws;
         } catch (err) {
-            throw new Error(err);
+            throw err;
         }
     }
 }
+
+module.exports = BinanceWS;

@@ -6,7 +6,7 @@ const MarginCallPosition  = require('./MarginCallPosition');
  * @class MarginCall
  * @extends UserDataEvent
  */
-module.exports = class MarginCall extends UserDataEvent {
+class MarginCall extends UserDataEvent {
     /**
      * Creates an instance of MarginCall.
      * @param {Object} setup - The setup object containing margin call event properties.
@@ -34,7 +34,9 @@ module.exports = class MarginCall extends UserDataEvent {
             this.positions = Array.isArray(p) ? p.map(item => new MarginCallPosition(item)) : [];
         } catch (err) {
             // Throws an error if there is an issue during setup.
-            throw new Error(err);
+            throw err;
         }
     }
 }
+
+module.exports = MarginCall;

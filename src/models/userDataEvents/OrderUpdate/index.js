@@ -6,7 +6,7 @@ const OrderData  = require('./OrderData');
  * @class OrderUpdate
  * @extends UserDataEvent
  */
-module.exports = class OrderUpdate extends UserDataEvent {
+class OrderUpdate extends UserDataEvent {
     /**
      * Creates an instance of OrderUpdate.
      * @param {Object} setup - The setup object containing order update properties.
@@ -27,7 +27,9 @@ module.exports = class OrderUpdate extends UserDataEvent {
             this.orderData = new OrderData(o);
         } catch (err) {
             // Throws an error if there is an issue during setup.
-            throw new Error(err);
+            throw err;
         }
     }
 }
+
+module.exports = OrderUpdate;

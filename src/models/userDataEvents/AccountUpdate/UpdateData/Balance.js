@@ -2,7 +2,7 @@
  * Represents balance information in an account.
  * @class Balance
  */
-module.exports = class Balance {
+class Balance {
     /**
      * Creates an instance of Balance.
      * @param {Object} setup - The setup object containing balance properties.
@@ -46,7 +46,9 @@ module.exports = class Balance {
             this.balanceChange = Number(bc);
         } catch (err) {
             // Throws an error if there is an issue during setup.
-            throw new Error(err);
+            throw err;
         }
     }
 }
+
+module.exports = Balance;

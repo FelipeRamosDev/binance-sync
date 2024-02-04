@@ -2,7 +2,7 @@
  * Represents a user data event.
  * @class UserDataEvent
  */
-module.exports = class UserDataEvent {
+class UserDataEvent {
     /**
      * Creates an instance of UserDataEvent.
      * @param {Object} setup - The setup object containing event properties.
@@ -38,7 +38,9 @@ module.exports = class UserDataEvent {
             if (T) this.transactionTime = T;
         } catch (err) {
             // Throws an error if there is an issue during setup.
-            throw new Error(err);
+            throw err;
         }
     }
 }
+
+module.exports = UserDataEvent;

@@ -1,7 +1,7 @@
 /**
  * A class representing a Candlestick for financial data.
  */
-module.exports = class Candlestick {
+class Candlestick {
     /**
      * Constructs a new Candlestick object.
      * @param {Object} setup - The configuration object for the candlestick.
@@ -45,7 +45,9 @@ module.exports = class Candlestick {
             this.volume = Number(volume);
             this.isCandleClosed = isCandleClosed;
         } catch(err) {
-            throw new Error(err);
+            throw err;
         }
     }
 }
+
+module.exports = Candlestick;

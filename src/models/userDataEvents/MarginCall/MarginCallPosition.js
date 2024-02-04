@@ -2,7 +2,7 @@
  * Represents a position involved in a margin call event.
  * @class MarginCallPosition
  */
-module.exports = class MarginCallPosition {
+class MarginCallPosition {
     /**
      * Creates an instance of MarginCallPosition.
      * @param {Object} setup - The setup object containing margin call position properties.
@@ -69,7 +69,9 @@ module.exports = class MarginCallPosition {
             this.marginRequired = Number(mm);
         } catch (err) {
             // Throws an error if there is an issue during setup.
-            throw new Error(err);
+            throw err;
         }
     }
 }
+
+module.exports = MarginCallPosition;

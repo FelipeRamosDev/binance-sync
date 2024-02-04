@@ -6,7 +6,7 @@ const AccountConfig  = require('./AccountConfig');
  * @class AccountConfigUpdate
  * @extends UserDataEvent
  */
-module.exports = class AccountConfigUpdate extends UserDataEvent {
+class AccountConfigUpdate extends UserDataEvent {
     /**
      * Creates an instance of AccountConfigUpdate.
      * @param {Object} setup - The setup object containing account configuration update properties.
@@ -27,7 +27,9 @@ module.exports = class AccountConfigUpdate extends UserDataEvent {
             this.accountConfig = new AccountConfig(ac);
         } catch (err) {
             // Throws an error if there is an issue during setup.
-            throw new Error(err);
+            throw err;
         }
     }
 }
+
+module.exports = AccountConfigUpdate;

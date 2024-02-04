@@ -9,7 +9,7 @@ const appConfigs  = require('../configs.json');
 /**
  * Representing BinanceStreams, a class with to handle WebSockets streams on Binance API.
  */
-module.exports = class BinanceStreams {
+class BinanceStreams {
     /**
      * Create a BinanceStreams.
      * @param {BinanceService} parentService - The parent BinanceService object.
@@ -102,6 +102,12 @@ module.exports = class BinanceStreams {
         }
     }
 
+    /**
+     * Closes the user data.
+     * @async
+     * @returns {Object} The closed user data.
+     * @throws {Error} If there is an error during closing.
+     */
     async closeUserData() {
         try {
             const closed = await this.parentService.reqHTTP.DELETE('/fapi/v1/listenKey');
@@ -116,6 +122,15 @@ module.exports = class BinanceStreams {
         }
     }
 
+    /**
+     * Opens a WebSocket connection to receive kline/candlestick data.
+     * @async
+     * @param {string} symbol - The symbol for the data.
+     * @param {string} interval - The interval for the data.
+     * @param {Object} callbacks - The callbacks for the WebSocket events.
+     * @returns {WebSocket} The WebSocket object with the connection.
+     * @throws {Error} If there is an error during the request.
+     */
     async klineCandlestick(symbol, interval, callbacks) {
         const { open, error, data, close } = Object(callbacks);
 
@@ -137,3 +152,5 @@ module.exports = class BinanceStreams {
         }
     }
 }
+
+module.exports = BinanceStreams;
