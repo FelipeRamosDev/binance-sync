@@ -45,7 +45,7 @@ module.exports = class Candlestick {
             this.volume = Number(volume);
             this.isCandleClosed = isCandleClosed;
         } catch(err) {
-            throw new Error.Log(err).append('common.model_construction', 'Candlestick');
+            throw new Error(err);
         }
     }
 }

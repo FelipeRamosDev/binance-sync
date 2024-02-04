@@ -27,7 +27,7 @@ module.exports = class AccountConfig {
             this.leverage = Number(l);
         } catch (err) {
             // Throws an error if there is an issue during setup.
-            throw new Error.Log(err);
+            throw new Error(err);
         }
     }
 }

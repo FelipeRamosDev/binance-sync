@@ -6,7 +6,7 @@ module.exports = class UserStream {
             this.ws = ws;
             this.listeners = {...listeners};
         } catch (err) {
-            throw new Error.Log(err);
+            throw new Error(err);
         }
     }
 }

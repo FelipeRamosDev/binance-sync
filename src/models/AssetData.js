@@ -11,7 +11,7 @@ module.exports = class AssetData {
     }
 
     fixQuantity(value) {
-        if (isNaN(value)) throw new Error.Log('common.asset_data_normalize_number_is_NaN', value);
+        if (isNaN(value)) throw new Error('common.asset_data_normalize_number_is_NaN', value);
         const formattedNumber = new Intl.NumberFormat('en-US', {
             maximumFractionDigits: this.getQuantityDecimalPlaces(),
             useGrouping: false

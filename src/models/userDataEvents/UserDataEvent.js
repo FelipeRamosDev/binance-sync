@@ -38,7 +38,7 @@ module.exports = class UserDataEvent {
             if (T) this.transactionTime = T;
         } catch (err) {
             // Throws an error if there is an issue during setup.
-            throw new Error.Log(err);
+            throw new Error(err);
         }
     }
 }

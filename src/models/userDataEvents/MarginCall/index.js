@@ -34,7 +34,7 @@ module.exports = class MarginCall extends UserDataEvent {
             this.positions = Array.isArray(p) ? p.map(item => new MarginCallPosition(item)) : [];
         } catch (err) {
             // Throws an error if there is an issue during setup.
-            throw new Error.Log(err);
+            throw new Error(err);
         }
     }
 }

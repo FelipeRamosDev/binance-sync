@@ -1,5 +1,5 @@
 const WebSocket  = require('ws');
-const { urls }  = require('../configs.json');
+const appConfigs  = require('../configs.json');
 
 module.exports = class BinanceWS {
     constructor(parentService, configs) {
@@ -7,9 +7,9 @@ module.exports = class BinanceWS {
             const { baseURL } = Object(configs);
 
             this._parentService = () => parentService;
-            this.baseURL = baseURL || urls.futuresBaseStream;
+            this.baseURL = baseURL || appConfigs?.URLS?.futuresBaseStream;
         } catch (err) {
-            throw new Error.Log(err);
+            throw new Error(err);
         }
     }
 
@@ -30,14 +30,14 @@ module.exports = class BinanceWS {
      * @async
      * @param {boolean} noKeepAlive - If true, the listen key will not be kept alive and it will be closed after 60 minutes (1 hour).
      * @return {string} The listen key.
-     * @throws {Error} Will throw an error if the response does not contain a listen key or if the response is an instance of Error.Log.
+     * @throws {Error} Will throw an error if the response does not contain a listen key or if the response is an instance of Error.
      */
     async getListenKey(noKeepAlive) {
         try {
             const response = await this.parentService.reqHTTP.POST('/fapi/v1/listenKey');
 
-            if (!response.listenKey || response instanceof Error.Log) {
-                throw response;
+            if (response.code && response.msg) {
+                throw new Error({ message: `[${response.code}] ${response.msg}` });
             }
 
             if (!noKeepAlive) {
@@ -46,15 +46,11 @@ module.exports = class BinanceWS {
 
             return response.listenKey;
         } catch (err) {
-            if (err instanceof Error.Log) {
-                throw new Error.Log(err);
-            } else {
-                throw err;
-            }
+            throw err;
         }
     }
     
-    async connect(params) {
+    async subscribe(params) {
         const { endpoint, isPublic, callbacks } = Object(params);
         const { open, error, data, close } = Object(callbacks);
         let endpointAppend;
@@ -101,7 +97,7 @@ module.exports = class BinanceWS {
 
             return ws;
         } catch (err) {
-            throw new Error.Log(err);
+            throw new Error(err);
         }
     }
 }

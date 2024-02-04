@@ -17,7 +17,7 @@ module.exports = class BinanceCenter {
             // Create the main Binance connection
             this.connection = new Binance();
         } catch(err) {
-            throw new Error.Log('binance.connection.binance_api_init');
+            throw new Error('binance.connection.binance_api_init');
         }
     }
 

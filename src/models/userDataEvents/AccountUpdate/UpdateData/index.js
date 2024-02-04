@@ -41,7 +41,7 @@ module.exports = class UpdateData {
             this.positions = Array.isArray(P) ? P.map(item => new AccountPosition(item)) : [];
         } catch (err) {
             // Throws an error if there is an issue during setup.
-            throw new Error.Log(err);
+            throw new Error(err);
         }
     }
 }
