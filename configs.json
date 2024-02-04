@@ -1,0 +1,6 @@
+{
+    "URLS": {
+        "futuresBase": "https://fapi.binance.com",
+        "futuresBaseStream": "wss://fstream.binance.com/ws"
+    }
+}

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: BinanceAJAX.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: BinanceAJAX.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const { Axios }  = require('axios');
+const _crypto  = require('crypto');
+const appConfigs  = require('../configs.json');
+
+/**
+ * BinanceAJAX class for managing AJAX requests to Binance.
+ * @extends Axios
+ */
+class BinanceAJAX extends Axios {
+    /**
+     * Constructs a new BinanceAJAX instance.
+     * @param {string} API_KEY - The API key for Binance.
+     * @param {string} API_SECRET - The API secret for Binance.
+     * @param {Object} config - The configuration object for Axios.
+     */
+    constructor(API_KEY, API_SECRET, config) {
+        super({
+            headers: API_KEY &amp;&amp; { 'X-MBX-APIKEY': API_KEY },
+            baseURL: appConfigs?.URLS?.futuresBase,
+            ...config
+        });
+
+        this._API_KEY = () => API_KEY;
+        this._API_SECRET = () => API_SECRET;
+    }
+
+    /**
+     * Gets the API key.
+     * @returns {string} The API key.
+     */
+    get apiKey() {
+        return this._API_KEY();
+    }
+
+    /**
+     * Gets the API secret.
+     * @returns {string} The API secret.
+     */
+    get apiSecret() {
+        return this._API_SECRET();
+    }
+
+    /**
+     * Parses the URL for the request.
+     * @param {string} endpoint - The endpoint for the request.
+     * @param {Object} params - The parameters for the request.
+     * @returns {string} The parsed URL.
+     * @throws {Error} If there is an error during parsing.
+     */
+    async parseURL(endpoint, params) {
+        const queryString = new URLSearchParams('');
+
+        try {
+            const { data } = await this.get('/fapi/v1/time');
+            const { serverTime } = JSON.parse(data);
+
+            queryString.set('recvWindow', 60000);
+            queryString.set('timestamp', serverTime);
+    
+            Object.keys(Object(params)).map(key => queryString.set(key, params[key]));
+    
+            if (this.apiKey &amp;&amp; this.apiSecret) {
+                const signature = _crypto.createHmac('sha256', this.apiSecret).update(queryString.toString()).digest('hex');
+                queryString.set('signature', signature);
+            }
+            
+            return endpoint + '?' + queryString.toString();
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    /**
+     * Sends a GET request.
+     * @param {string} endpoint - The endpoint for the request.
+     * @param {Object} params - The parameters for the request.
+     * @returns {Object} The response data.
+     * @throws {Error} If there is an error during the request.
+     */
+    async GET(endpoint, params) {
+        try {
+            const url = await this.parseURL(endpoint, params);
+            const result = await this.get(url);
+
+            return JSON.parse(Object(result.data));
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    /**
+     * Sends a POST request.
+     * @param {string} endpoint - The endpoint for the request.
+     * @param {Object} params - The parameters for the request.
+     * @returns {Object} The response data.
+     * @throws {Error} If there is an error during the request.
+     */
+    async POST(endpoint, params) {
+        try {
+            const url = await this.parseURL(endpoint, params);
+            const result = await this.post(url);
+
+            return JSON.parse(Object(result.data));
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    /**
+     * Sends a PUT request.
+     * @param {string} endpoint - The endpoint for the request.
+     * @param {Object} params - The parameters for the request.
+     * @returns {Object} The response data.
+     * @throws {Error} If there is an error during the request.
+     */
+    async PUT(endpoint, params) {
+        try {
+            const url = await this.parseURL(endpoint, params);
+            const result = await this.put(url);
+
+            return JSON.parse(Object(result.data));
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    /**
+     * Sends a DELETE request.
+     * @param {string} endpoint - The endpoint for the request.
+     * @param {Object} params - The parameters for the request.
+     * @returns {Object} The response data.
+     * @throws {Error} If there is an error during the request.
+     */
+    async DELETE(endpoint, params) {
+        try {
+            const url = await this.parseURL(endpoint, params);
+            const result = await this.delete(url);
+
+            return JSON.parse(Object(result.data));
+        } catch (err) {
+            throw err;
+        }
+    }
+}
+
+module.exports = BinanceAJAX;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BinanceAJAX.html">BinanceAJAX</a></li><li><a href="BinanceCenter.html">BinanceCenter</a></li><li><a href="BinanceStreams.html">BinanceStreams</a></li><li><a href="BinanceSync.html">BinanceSync</a></li><li><a href="BinanceWS.html">BinanceWS</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Sun Feb 04 2024 05:37:32 GMT-0300 (Horário Padrão de Brasília)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
