@@ -2,7 +2,17 @@ const { Axios }  = require('axios');
 const _crypto  = require('crypto');
 const appConfigs  = require('../configs.json');
 
-module.exports = class BinanceAJAX extends Axios {
+/**
+ * BinanceAJAX class for managing AJAX requests to Binance.
+ * @extends Axios
+ */
+class BinanceAJAX extends Axios {
+    /**
+     * Constructs a new BinanceAJAX instance.
+     * @param {string} API_KEY - The API key for Binance.
+     * @param {string} API_SECRET - The API secret for Binance.
+     * @param {Object} config - The configuration object for Axios.
+     */
     constructor(API_KEY, API_SECRET, config) {
         super({
             headers: API_KEY && { 'X-MBX-APIKEY': API_KEY },
@@ -14,14 +24,29 @@ module.exports = class BinanceAJAX extends Axios {
         this._API_SECRET = () => API_SECRET;
     }
 
+    /**
+     * Gets the API key.
+     * @returns {string} The API key.
+     */
     get apiKey() {
         return this._API_KEY();
     }
 
+    /**
+     * Gets the API secret.
+     * @returns {string} The API secret.
+     */
     get apiSecret() {
         return this._API_SECRET();
     }
 
+    /**
+     * Parses the URL for the request.
+     * @param {string} endpoint - The endpoint for the request.
+     * @param {Object} params - The parameters for the request.
+     * @returns {string} The parsed URL.
+     * @throws {Error} If there is an error during parsing.
+     */
     async parseURL(endpoint, params) {
         const queryString = new URLSearchParams('');
 
@@ -45,6 +70,13 @@ module.exports = class BinanceAJAX extends Axios {
         }
     }
 
+    /**
+     * Sends a GET request.
+     * @param {string} endpoint - The endpoint for the request.
+     * @param {Object} params - The parameters for the request.
+     * @returns {Object} The response data.
+     * @throws {Error} If there is an error during the request.
+     */
     async GET(endpoint, params) {
         try {
             const url = await this.parseURL(endpoint, params);
@@ -56,6 +88,13 @@ module.exports = class BinanceAJAX extends Axios {
         }
     }
 
+    /**
+     * Sends a POST request.
+     * @param {string} endpoint - The endpoint for the request.
+     * @param {Object} params - The parameters for the request.
+     * @returns {Object} The response data.
+     * @throws {Error} If there is an error during the request.
+     */
     async POST(endpoint, params) {
         try {
             const url = await this.parseURL(endpoint, params);
@@ -67,6 +106,13 @@ module.exports = class BinanceAJAX extends Axios {
         }
     }
 
+    /**
+     * Sends a PUT request.
+     * @param {string} endpoint - The endpoint for the request.
+     * @param {Object} params - The parameters for the request.
+     * @returns {Object} The response data.
+     * @throws {Error} If there is an error during the request.
+     */
     async PUT(endpoint, params) {
         try {
             const url = await this.parseURL(endpoint, params);
@@ -78,6 +124,13 @@ module.exports = class BinanceAJAX extends Axios {
         }
     }
 
+    /**
+     * Sends a DELETE request.
+     * @param {string} endpoint - The endpoint for the request.
+     * @param {Object} params - The parameters for the request.
+     * @returns {Object} The response data.
+     * @throws {Error} If there is an error during the request.
+     */
     async DELETE(endpoint, params) {
         try {
             const url = await this.parseURL(endpoint, params);
@@ -89,3 +142,5 @@ module.exports = class BinanceAJAX extends Axios {
         }
     }
 }
+
+module.exports = BinanceAJAX;

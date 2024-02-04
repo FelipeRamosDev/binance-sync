@@ -2,7 +2,16 @@ const BinanceStreams  = require('./BinanceStreams');
 const AJAX  = require('./BinanceAJAX');
 const BinanceWS  = require('./BinanceWS');
 
-module.exports = class BinanceSync {
+/**
+ * BinanceSync class for synchronizing with Binance API.
+ */
+class BinanceSync {
+    /**
+     * Constructs a new BinanceSync instance.
+     * @param {string} API_KEY - The API key for Binance.
+     * @param {string} SECRET_KEY - The secret key for Binance.
+     * @throws {Error} If there is an error during construction.
+     */
     constructor(API_KEY, SECRET_KEY) {
         try {
             this._API_KEY = () => API_KEY;
@@ -11,22 +20,40 @@ module.exports = class BinanceSync {
             this.reqHTTP = new AJAX(this.API_KEY, this.SECRET_KEY);
             this.webSocket = new BinanceWS(this);
         } catch (err) {
-            throw new Error(err);
+            throw err;
         }
     }
 
+    /**
+     * Gets the API key.
+     * @return {string} The API key.
+     */
     get API_KEY() {
         return this._API_KEY();
     }
 
+    /**
+     * Gets the secret key.
+     * @return {string} The secret key.
+     */
     get SECRET_KEY() {
         return this._SECRET_KEY();
     }
 
+    /**
+     * Gets the streams.
+     * @return {BinanceStreams} The BinanceStreams object.
+     */
     get streams() {
         return new BinanceStreams(this);
     }
 
+    /**
+     * Gets the exchange information.
+     * @async
+     * @return {Object} The exchange information.
+     * @throws {Error} If there is an error during the request.
+     */
     async exchangeInfo() {
         try {
             const res = await this.reqHTTP.GET('/fapi/v1/exchangeInfo');
@@ -40,6 +67,14 @@ module.exports = class BinanceSync {
         }
     }
 
+    /**
+     * Changes the leverage.
+     * @async
+     * @param {string} symbol - The symbol for the leverage.
+     * @param {number} leverage - The leverage to be set.
+     * @return {Object} The response from the request.
+     * @throws {Error} If there is an error during the request.
+     */
     async changeLeverage(symbol, leverage) {
         try {
             if (isNaN(leverage) || leverage < 1 || leverage > 120) {
@@ -59,6 +94,14 @@ module.exports = class BinanceSync {
         }
     }
 
+    /**
+     * Changes the margin type.
+     * @async
+     * @param {string} symbol - The symbol for the margin type.
+     * @param {string} marginType - The margin type to be set.
+     * @return {Object} The response from the request.
+     * @throws {Error} If there is an error during the request.
+     */
     async changeMarginType(symbol, marginType) {
         try {
             if (marginType !== 'ISOLATED' && marginType !== 'CROSSED') {
@@ -76,6 +119,13 @@ module.exports = class BinanceSync {
         }
     }
     
+    /**
+     * Gets the leverage brackets.
+     * @async
+     * @param {string} symbol - The symbol for the leverage brackets.
+     * @return {Object} The leverage brackets.
+     * @throws {Error} If there is an error during the request.
+     */
     async leverageBrackets(symbol) {
         let response;
 
@@ -102,6 +152,12 @@ module.exports = class BinanceSync {
         }
     }
 
+    /**
+     * Gets the futures account information.
+     * @async
+     * @return {Object} The futures account information.
+     * @throws {Error} If there is an error during the request.
+     */
     async futuresAccountInfo() {
         try {
             const res = await this.reqHTTP.GET('/fapi/v2/account');
@@ -115,6 +171,12 @@ module.exports = class BinanceSync {
         }
     }
 
+    /**
+     * Gets the futures account balance.
+     * @async
+     * @return {Object} The futures account balance.
+     * @throws {Error} If there is an error during the request.
+     */
     async futuresAccountBalance() {
         try {
             const res = await this.reqHTTP.GET('/fapi/v2/balance');
@@ -128,6 +190,18 @@ module.exports = class BinanceSync {
         }
     }
 
+    /**
+     * Gets the futures chart.
+     * @async
+     * @param {string} symbol - The symbol for the chart.
+     * @param {string} interval - The interval for the chart.
+     * @param {Object} options - The options for the chart.
+     * @param {Date|number} options.startTime - The options for the chart.
+     * @param {Date|number} options.endTime - The options for the chart.
+     * @param {number} options.limit - The options for the chart.
+     * @return {Candlestick[]} The futures chart.
+     * @throws {Error} If there is an error during the request.
+     */
     async futuresChart(symbol, interval, options) {
         const { startTime, endTime, limit } = Object(options); 
         const Candlestick = require('./models/Candlestick');
@@ -163,6 +237,16 @@ module.exports = class BinanceSync {
         }
     }
 
+    /**
+     * Creates a new order.
+     * @async
+     * @param {string} symbol - The symbol for the order.
+     * @param {string} side - The side of the order.
+     * @param {string} type - The type of the order.
+     * @param {Object} params - The parameters for the order.
+     * @return {Object} The new order.
+     * @throws {Error} If there is an error during the request.
+     */
     async newOrder(symbol, side, type, params) {
         try {
             const newOrder = await this.reqHTTP.POST('/fapi/v1/order', {
@@ -182,6 +266,14 @@ module.exports = class BinanceSync {
         }
     }
 
+    /**
+     * Cancels an order.
+     * @async
+     * @param {string} symbol - The symbol for the order.
+     * @param {string} clientOrderId - The client order ID for the order.
+     * @return {Object} The cancelled order.
+     * @throws {Error} If there is an error during the request.
+     */
     async cancelOrder(symbol, clientOrderId) {
         try {
             const cancelled = await this.reqHTTP.DELETE('/fapi/v1/order', { symbol, origClientOrderId: clientOrderId });
@@ -196,6 +288,14 @@ module.exports = class BinanceSync {
         }
     }
 
+    /**
+     * Cancels multiple orders.
+     * @async
+     * @param {string} symbol - The symbol for the orders.
+     * @param {Array} orderIds - The order IDs for the orders.
+     * @return {Object} The response from the request.
+     * @throws {Error} If there is an error during the request.
+     */
     async cancelMultipleOrders(symbol, orderIds) {
         try {
             const res = await this.reqHTTP.DELETE('/fapi/v1/batchOrders', { symbol, orderidlist: orderIds });
@@ -209,6 +309,13 @@ module.exports = class BinanceSync {
         }
     }
 
+    /**
+     * Cancels all orders of an asset.
+     * @async
+     * @param {string} symbol - The symbol for the asset.
+     * @return {Object} The response from the request.
+     * @throws {Error} If there is an error during the request.
+     */
     async cancelAllOrdersOfAsset(symbol) {
         try {
             const res = this.reqHTTP.DELETE('/fapi/v1/allOpenOrders', { symbol });
@@ -222,3 +329,5 @@ module.exports = class BinanceSync {
         }
     }
 }
+
+module.exports = BinanceSync;

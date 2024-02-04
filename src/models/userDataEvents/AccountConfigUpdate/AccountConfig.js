@@ -2,7 +2,7 @@
  * Represents a configuration for an account.
  * @class AccountConfig
  */
-module.exports = class AccountConfig {
+class AccountConfig {
     /**
      * Creates an instance of AccountConfig.
      * @param {Object} setup - The setup object containing account configuration properties.
@@ -27,7 +27,9 @@ module.exports = class AccountConfig {
             this.leverage = Number(l);
         } catch (err) {
             // Throws an error if there is an issue during setup.
-            throw new Error(err);
+            throw err;
         }
     }
 }
+
+module.exports = AccountConfig;
