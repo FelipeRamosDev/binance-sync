@@ -1,4 +1,32 @@
-const BinanceStreams  = require('./BinanceStreams');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: BinanceSync.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: BinanceSync.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const BinanceStreams  = require('./BinanceStreams');
 const AJAX  = require('./BinanceAJAX');
 const BinanceWS  = require('./BinanceWS');
 
@@ -64,7 +92,7 @@ class BinanceSync {
     async exchangeInfo() {
         try {
             const res = await this.reqHTTP.GET('/fapi/v1/exchangeInfo');
-            if (res.code && res.msg) {
+            if (res.code &amp;&amp; res.msg) {
                 throw new Error({ message: `[${res.code}] ${res.msg}` });
             }
 
@@ -84,14 +112,14 @@ class BinanceSync {
      */
     async changeLeverage(symbol, leverage) {
         try {
-            if (isNaN(leverage) || leverage < 1 || leverage > 120) {
+            if (isNaN(leverage) || leverage &lt; 1 || leverage > 120) {
                 leverage = 1;
             } else {
                 leverage = Number(leverage);
             }
 
             const res = await this.reqHTTP.POST('/fapi/v1/leverage', { symbol, leverage });
-            if (res.code && res.msg) {
+            if (res.code &amp;&amp; res.msg) {
                 throw new Error({ message: `[${res.code}] ${res.msg}` });
             }
 
@@ -111,12 +139,12 @@ class BinanceSync {
      */
     async changeMarginType(symbol, marginType) {
         try {
-            if (marginType !== 'ISOLATED' && marginType !== 'CROSSED') {
+            if (marginType !== 'ISOLATED' &amp;&amp; marginType !== 'CROSSED') {
                 marginType = 'ISOLATED';
             }
 
             const res = await this.reqHTTP.POST('/fapi/v1/marginType', { symbol, marginType });
-            if (res.code && res.msg) {
+            if (res.code &amp;&amp; res.msg) {
                 throw new Error({ message: `[${res.code}] ${res.msg}` });
             }
 
@@ -143,7 +171,7 @@ class BinanceSync {
                 response = await this.reqHTTP.GET('/fapi/v1/leverageBracket');
             }
 
-            if (response.code && response.msg) {
+            if (response.code &amp;&amp; response.msg) {
                 throw new Error({ message: `[${response.code}] ${response.msg}` });
             }
 
@@ -168,7 +196,7 @@ class BinanceSync {
     async futuresAccountInfo() {
         try {
             const res = await this.reqHTTP.GET('/fapi/v2/account');
-            if (res.code && res.msg) {
+            if (res.code &amp;&amp; res.msg) {
                 throw new Error({ message: `[${res.code}] ${res.msg}` });
             }
 
@@ -187,7 +215,7 @@ class BinanceSync {
     async futuresAccountBalance() {
         try {
             const res = await this.reqHTTP.GET('/fapi/v2/balance');
-            if (res.code && res.msg) {
+            if (res.code &amp;&amp; res.msg) {
                 throw new Error({ message: `[${res.code}] ${res.msg}` });
             }
 
@@ -263,7 +291,7 @@ class BinanceSync {
                 ...params
             });
 
-            if (newOrder.code && newOrder.msg) {
+            if (newOrder.code &amp;&amp; newOrder.msg) {
                 return new Error({ message: `[${newOrder.code}] ${newOrder.msg}` });
             }
 
@@ -285,7 +313,7 @@ class BinanceSync {
         try {
             const cancelled = await this.reqHTTP.DELETE('/fapi/v1/order', { symbol, origClientOrderId: clientOrderId });
 
-            if (cancelled.code && cancelled.msg) {
+            if (cancelled.code &amp;&amp; cancelled.msg) {
                 return new Error({ message: `[${cancelled.code}] ${cancelled.msg}` });
             }
 
@@ -306,7 +334,7 @@ class BinanceSync {
     async cancelMultipleOrders(symbol, orderIds) {
         try {
             const res = await this.reqHTTP.DELETE('/fapi/v1/batchOrders', { symbol, orderidlist: orderIds });
-            if (res.code && res.msg) {
+            if (res.code &amp;&amp; res.msg) {
                 throw new Error({ message: `[${res.code}] ${res.msg}` });
             }
 
@@ -326,7 +354,7 @@ class BinanceSync {
     async cancelAllOrdersOfAsset(symbol) {
         try {
             const res = this.reqHTTP.DELETE('/fapi/v1/allOpenOrders', { symbol });
-            if (res.code && res.msg) {
+            if (res.code &amp;&amp; res.msg) {
                 throw new Error({ message: `[${res.code}] ${res.msg}` });
             }
 
@@ -338,3 +366,26 @@ class BinanceSync {
 }
 
 module.exports = BinanceSync;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BinanceAJAX.html">BinanceAJAX</a></li><li><a href="BinanceCenter.html">BinanceCenter</a></li><li><a href="BinanceStreams.html">BinanceStreams</a></li><li><a href="BinanceSync.html">BinanceSync</a></li><li><a href="BinanceWS.html">BinanceWS</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Sun Feb 04 2024 05:37:32 GMT-0300 (Horário Padrão de Brasília)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
