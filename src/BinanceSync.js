@@ -1,4 +1,3 @@
-const BinanceStreams  = require('./BinanceStreams');
 const AJAX  = require('./BinanceAJAX');
 const BinanceWS  = require('./BinanceWS');
 
@@ -52,6 +51,7 @@ class BinanceSync {
      * @return {BinanceStreams} The BinanceStreams object.
      */
     get streams() {
+        const BinanceStreams  = require('./BinanceStreams');
         return new BinanceStreams(this);
     }
 
@@ -206,11 +206,11 @@ class BinanceSync {
      * @param {Date|number} options.startTime - The options for the chart.
      * @param {Date|number} options.endTime - The options for the chart.
      * @param {number} options.limit - The options for the chart.
-     * @return {Candlestick[]} The futures chart.
+     * @return {Promise<Candlestick[]>} The futures chart.
      * @throws {Error} If there is an error during the request.
      */
     async futuresChart(symbol, interval, options) {
-        const { startTime, endTime, limit } = Object(options); 
+        const { startTime, endTime, limit = 500 } = Object(options); 
         const Candlestick = require('./models/Candlestick');
 
         try {
@@ -223,7 +223,7 @@ class BinanceSync {
             });
 
             if (!Array.isArray(candles)) {
-                return new Error({ message: `[${candles.code}] ${candles.msg}` });
+                return { error: true, code: candles.code, message: candles.msg };
             }
 
             return candles.map(candle => new Candlestick({
@@ -236,11 +236,10 @@ class BinanceSync {
                 close: candle[4],
                 volume: candle[5],
                 closeTime: candle[6],
-                isCandleClosed: true,
-                formatDate: true
+                isCandleClosed: true
             }));
         } catch (err) {
-            throw err;
+            throw new Error(err);
         }
     }
 

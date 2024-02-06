@@ -63,7 +63,7 @@ class BinanceWS {
      * Subscribes to a WebSocket stream.
      * @async
      * @param {Object} params - The parameters for the subscription.
-     * @return {WebSocket} The WebSocket object with the connection.
+     * @return {Promise<WebSocket>} The WebSocket object with the connection.
      * @throws {Error} If there is an error during the request.
      */
     async subscribe(params) {
