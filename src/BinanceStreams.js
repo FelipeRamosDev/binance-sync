@@ -4,6 +4,7 @@ const AccountUpdate  = require('./models/userDataEvents/AccountUpdate');
 const OrderUpdate  = require('./models/userDataEvents/OrderUpdate');
 const AccountConfigUpdate  = require('./models/userDataEvents/AccountConfigUpdate');
 const UserStream  = require('./models/userDataEvents/UserStream');
+const ChartStream  = require('./models/ChartStream');
 const appConfigs  = require('../configs.json');
 
 /**
@@ -28,7 +29,7 @@ class BinanceStreams {
 
     /**
      * Get the parent service.
-     * @return {Object} The parent service.
+     * @return {BinanceService} The parent service.
      */
     get parentService() {
         return this._parentService();
@@ -58,7 +59,7 @@ class BinanceStreams {
      * @param {Function} callbacks.error - Callback function for "error" callback. Receives one argument with the error object.
      * @param {Function} callbacks.data - Callback function for "data" callback. Receives one argument with the data object.
      * @param {Function} callbacks.close - Callback function for "close" callback. It won't receive any argument.
-     * @return {WebSocket} A WebSocket object with the connection.
+     * @return {Promise<UserStream>} A WebSocket object with the connection.
      * @throws {Error} Will throw an error if the response does not contain a listen key or if the response is an instance of Error.
      */
     async userData(callbacks) {
@@ -128,10 +129,14 @@ class BinanceStreams {
      * @param {string} symbol - The symbol for the data.
      * @param {string} interval - The interval for the data.
      * @param {Object} callbacks - The callbacks for the WebSocket events.
-     * @returns {WebSocket} The WebSocket object with the connection.
+     * @param {Function} callbacks.open - Triggered when the websocket is successfuly started.
+     * @param {Function} callbacks.close - Triggered when the websocket is successfuly closed.
+     * @param {Function} callbacks.data - Triggered every time a new change arrives.
+     * @param {Function} callbacks.error - Triggered on errors.
+     * @returns {Promise<WebSocket>} The WebSocket object with the connection.
      * @throws {Error} If there is an error during the request.
      */
-    async klineCandlestick(symbol, interval, callbacks) {
+    async currentCandle(symbol, interval, callbacks) {
         const { open, error, data, close } = Object(callbacks);
 
         try {
@@ -150,6 +155,49 @@ class BinanceStreams {
         } catch (err) {
             throw err;
         }
+    }
+
+    async candlestickChart(symbol, interval, options) {
+        const { callbacks } = Object(options);
+        const { open, error, data, close } = Object(callbacks);
+
+        return new Promise(async (resolve, reject) => {
+            try {
+                const history = await this.parentService.futuresChart(symbol, interval, options);
+                const chart = new ChartStream({ symbol, interval, history });
+
+                if (history.error) {
+                    return reject(history);
+                }
+
+                await this.currentCandle(symbol, interval, {
+                    open: () => {
+                        if (typeof open === 'function') {
+                            open(chart);
+                            resolve(chart);
+                        }
+                    },
+                    close: () => {
+                        if (typeof close === 'function') {
+                            close();
+                        }
+                    },
+                    data: (snapshot) => {
+                        if (typeof data === 'function') {
+                            chart.updateSnapshot(snapshot);
+                            data(chart);
+                        }
+                    },
+                    error: (err) => {
+                        if (typeof error === 'function') {
+                            error(err);
+                        }
+                    }
+                });
+            } catch (err) {
+                return reject(err);
+            }
+        });
     }
 }
 
