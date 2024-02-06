@@ -29,7 +29,8 @@ class BinanceCenter {
 
     /**
      * Initializes the BinanceCenter instance.
-     * @returns {Object} The success status.
+     * @async
+     * @returns {Promise<Object>} The success status.
      * @throws {Error} If there is an error during initialization.
      */
     async init() {

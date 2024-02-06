@@ -9,7 +9,7 @@ class AssetData {
      */
     constructor(setup) {
         const { filters } = Object(setup);
-        Object.entries(arguments[0] || {}).map(([key, item]) => this[key] = item);
+        Object.entries(Object(setup)).map(([key, item]) => this[key] = item);
 
         if (Array.isArray(filters)){
             this.filters = {};
