@@ -44,7 +44,7 @@ class BinanceAJAX extends Axios {
      * Parses the URL for the request.
      * @param {string} endpoint - The endpoint for the request.
      * @param {Object} params - The parameters for the request.
-     * @returns {string} The parsed URL.
+     * @returns {Promise<string>} The parsed URL.
      * @throws {Error} If there is an error during parsing.
      */
     async parseURL(endpoint, params) {
@@ -72,9 +72,10 @@ class BinanceAJAX extends Axios {
 
     /**
      * Sends a GET request.
+     * @async
      * @param {string} endpoint - The endpoint for the request.
      * @param {Object} params - The parameters for the request.
-     * @returns {Object} The response data.
+     * @returns {Promise<Object>} The response data.
      * @throws {Error} If there is an error during the request.
      */
     async GET(endpoint, params) {
@@ -90,9 +91,10 @@ class BinanceAJAX extends Axios {
 
     /**
      * Sends a POST request.
+     * @async
      * @param {string} endpoint - The endpoint for the request.
      * @param {Object} params - The parameters for the request.
-     * @returns {Object} The response data.
+     * @returns {Promise<Object>} The response data.
      * @throws {Error} If there is an error during the request.
      */
     async POST(endpoint, params) {
@@ -108,9 +110,10 @@ class BinanceAJAX extends Axios {
 
     /**
      * Sends a PUT request.
+     * @async
      * @param {string} endpoint - The endpoint for the request.
      * @param {Object} params - The parameters for the request.
-     * @returns {Object} The response data.
+     * @returns {Promise<Object>} The response data.
      * @throws {Error} If there is an error during the request.
      */
     async PUT(endpoint, params) {
@@ -126,9 +129,10 @@ class BinanceAJAX extends Axios {
 
     /**
      * Sends a DELETE request.
+     * @async
      * @param {string} endpoint - The endpoint for the request.
      * @param {Object} params - The parameters for the request.
-     * @returns {Object} The response data.
+     * @returns {Promise<Object>} The response data.
      * @throws {Error} If there is an error during the request.
      */
     async DELETE(endpoint, params) {

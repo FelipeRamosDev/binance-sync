@@ -1,4 +1,3 @@
-const BinanceStreams  = require('./BinanceStreams');
 const AJAX  = require('./BinanceAJAX');
 const BinanceWS  = require('./BinanceWS');
 
@@ -52,20 +51,21 @@ class BinanceSync {
      * @return {BinanceStreams} The BinanceStreams object.
      */
     get streams() {
+        const BinanceStreams  = require('./BinanceStreams');
         return new BinanceStreams(this);
     }
 
     /**
      * Gets the exchange information.
      * @async
-     * @return {Object} The exchange information.
+     * @return {Promise<Object>} The exchange information.
      * @throws {Error} If there is an error during the request.
      */
     async exchangeInfo() {
         try {
             const res = await this.reqHTTP.GET('/fapi/v1/exchangeInfo');
             if (res.code && res.msg) {
-                throw new Error({ message: `[${res.code}] ${res.msg}` });
+                throw new Error(`[${res.code}] ${res.msg}`);
             }
 
             return res;
@@ -79,7 +79,7 @@ class BinanceSync {
      * @async
      * @param {string} symbol - The symbol for the leverage.
      * @param {number} leverage - The leverage to be set.
-     * @return {Object} The response from the request.
+     * @return {Promise<Object>} Binance response from the request.
      * @throws {Error} If there is an error during the request.
      */
     async changeLeverage(symbol, leverage) {
@@ -92,7 +92,7 @@ class BinanceSync {
 
             const res = await this.reqHTTP.POST('/fapi/v1/leverage', { symbol, leverage });
             if (res.code && res.msg) {
-                throw new Error({ message: `[${res.code}] ${res.msg}` });
+                throw new Error(`[${res.code}] ${res.msg}`);
             }
 
             return res;
@@ -106,7 +106,7 @@ class BinanceSync {
      * @async
      * @param {string} symbol - The symbol for the margin type.
      * @param {string} marginType - The margin type to be set.
-     * @return {Object} The response from the request.
+     * @return {Promise<Object>} The response from the request.
      * @throws {Error} If there is an error during the request.
      */
     async changeMarginType(symbol, marginType) {
@@ -117,7 +117,7 @@ class BinanceSync {
 
             const res = await this.reqHTTP.POST('/fapi/v1/marginType', { symbol, marginType });
             if (res.code && res.msg) {
-                throw new Error({ message: `[${res.code}] ${res.msg}` });
+                throw new Error(`[${res.code}] ${res.msg}`);
             }
 
             return res;
@@ -130,7 +130,7 @@ class BinanceSync {
      * Gets the leverage brackets.
      * @async
      * @param {string} symbol - The symbol for the leverage brackets.
-     * @return {Object} The leverage brackets.
+     * @return {Promise<Object>} The leverage brackets.
      * @throws {Error} If there is an error during the request.
      */
     async leverageBrackets(symbol) {
@@ -144,7 +144,7 @@ class BinanceSync {
             }
 
             if (response.code && response.msg) {
-                throw new Error({ message: `[${response.code}] ${response.msg}` });
+                throw new Error(`[${response.code}] ${response.msg}`);
             }
 
             if (Array.isArray(response)) {
@@ -162,14 +162,14 @@ class BinanceSync {
     /**
      * Gets the futures account information.
      * @async
-     * @return {Object} The futures account information.
+     * @return {Promise<Object>} The futures account information.
      * @throws {Error} If there is an error during the request.
      */
     async futuresAccountInfo() {
         try {
             const res = await this.reqHTTP.GET('/fapi/v2/account');
             if (res.code && res.msg) {
-                throw new Error({ message: `[${res.code}] ${res.msg}` });
+                throw new Error(`[${res.code}] ${res.msg}`);
             }
 
             return res;
@@ -181,14 +181,14 @@ class BinanceSync {
     /**
      * Gets the futures account balance.
      * @async
-     * @return {Object} The futures account balance.
+     * @return {Promise<Object>} The futures account balance.
      * @throws {Error} If there is an error during the request.
      */
     async futuresAccountBalance() {
         try {
             const res = await this.reqHTTP.GET('/fapi/v2/balance');
             if (res.code && res.msg) {
-                throw new Error({ message: `[${res.code}] ${res.msg}` });
+                throw new Error(`[${res.code}] ${res.msg}`);
             }
 
             return res;
@@ -206,11 +206,11 @@ class BinanceSync {
      * @param {Date|number} options.startTime - The options for the chart.
      * @param {Date|number} options.endTime - The options for the chart.
      * @param {number} options.limit - The options for the chart.
-     * @return {Candlestick[]} The futures chart.
+     * @return {Promise<Candlestick[]>} The futures chart.
      * @throws {Error} If there is an error during the request.
      */
     async futuresChart(symbol, interval, options) {
-        const { startTime, endTime, limit } = Object(options); 
+        const { startTime, endTime, limit = 500 } = Object(options); 
         const Candlestick = require('./models/Candlestick');
 
         try {
@@ -223,7 +223,7 @@ class BinanceSync {
             });
 
             if (!Array.isArray(candles)) {
-                return new Error({ message: `[${candles.code}] ${candles.msg}` });
+                return { error: true, code: candles.code, message: candles.msg };
             }
 
             return candles.map(candle => new Candlestick({
@@ -236,11 +236,10 @@ class BinanceSync {
                 close: candle[4],
                 volume: candle[5],
                 closeTime: candle[6],
-                isCandleClosed: true,
-                formatDate: true
+                isCandleClosed: true
             }));
         } catch (err) {
-            throw err;
+            throw new Error(err);
         }
     }
 
@@ -251,7 +250,7 @@ class BinanceSync {
      * @param {string} side - The side of the order.
      * @param {string} type - The type of the order.
      * @param {Object} params - The parameters for the order.
-     * @return {Object} The new order.
+     * @return {Promise<Object>} The new order.
      * @throws {Error} If there is an error during the request.
      */
     async newOrder(symbol, side, type, params) {
@@ -278,7 +277,7 @@ class BinanceSync {
      * @async
      * @param {string} symbol - The symbol for the order.
      * @param {string} clientOrderId - The client order ID for the order.
-     * @return {Object} The cancelled order.
+     * @return {Promise<Object>} The cancelled order.
      * @throws {Error} If there is an error during the request.
      */
     async cancelOrder(symbol, clientOrderId) {
@@ -286,7 +285,7 @@ class BinanceSync {
             const cancelled = await this.reqHTTP.DELETE('/fapi/v1/order', { symbol, origClientOrderId: clientOrderId });
 
             if (cancelled.code && cancelled.msg) {
-                return new Error({ message: `[${cancelled.code}] ${cancelled.msg}` });
+                return new Error(`[${cancelled.code}] ${cancelled.msg}`);
             }
 
             return cancelled;
@@ -300,14 +299,14 @@ class BinanceSync {
      * @async
      * @param {string} symbol - The symbol for the orders.
      * @param {Array} orderIds - The order IDs for the orders.
-     * @return {Object} The response from the request.
+     * @return {Promise<Object>} The response from the request.
      * @throws {Error} If there is an error during the request.
      */
     async cancelMultipleOrders(symbol, orderIds) {
         try {
             const res = await this.reqHTTP.DELETE('/fapi/v1/batchOrders', { symbol, orderidlist: orderIds });
             if (res.code && res.msg) {
-                throw new Error({ message: `[${res.code}] ${res.msg}` });
+                throw new Error(`[${res.code}] ${res.msg}`);
             }
 
             return res;
@@ -320,14 +319,14 @@ class BinanceSync {
      * Cancels all orders of an asset.
      * @async
      * @param {string} symbol - The symbol for the asset.
-     * @return {Object} The response from the request.
+     * @return {Promise<Object>} The response from the request.
      * @throws {Error} If there is an error during the request.
      */
     async cancelAllOrdersOfAsset(symbol) {
         try {
             const res = this.reqHTTP.DELETE('/fapi/v1/allOpenOrders', { symbol });
             if (res.code && res.msg) {
-                throw new Error({ message: `[${res.code}] ${res.msg}` });
+                throw new Error(`[${res.code}] ${res.msg}`);
             }
 
             return res;
