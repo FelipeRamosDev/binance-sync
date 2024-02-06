@@ -106,7 +106,7 @@ class BinanceStreams {
     /**
      * Closes the user data.
      * @async
-     * @returns {Object} The closed user data.
+     * @returns {Promise<Object>} The closed user data.
      * @throws {Error} If there is an error during closing.
      */
     async closeUserData() {
@@ -157,6 +157,22 @@ class BinanceStreams {
         }
     }
 
+    /**
+     * To get a complete chart stream for an asseet.
+     * @async
+     * @param {string} symbol The symbol to get the chart. Example: 'BTCUSDT'
+     * @param {string} interval The time interval for the chart. Example '15m'
+     * @param {Object} options The object with the options to configurate the chart.
+     * @param {Object} options.callbacks The object with the options to configurate the chart.
+     * @param {Date|number} options.startTime - The options for the chart.
+     * @param {Date|number} options.endTime - The options for the chart.
+     * @param {number} options.limit - The options for the chart.
+     * @param {Function} options.callbacks.open - Triggered when the websocket is successfuly started.
+     * @param {Function} options.callbacks.close - Triggered when the websocket is successfuly closed.
+     * @param {Function} options.callbacks.data - Triggered every time a new change arrives.
+     * @param {Function} options.callbacks.error - Triggered on errors.
+     * @returns {Promise<ChartStream>} Returns a promise with the chart.
+     */
     async candlestickChart(symbol, interval, options) {
         const { callbacks } = Object(options);
         const { open, error, data, close } = Object(callbacks);
