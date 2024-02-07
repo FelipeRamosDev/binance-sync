@@ -24,7 +24,7 @@ class ChartStream {
             /** @property {string} interval - The interval for the chart stream. */
             this.interval = interval;
 
-            /** @property {Candlestick[]} history - The history data for the chart stream (Only the past candles). */
+            /** @property {Candlestick[]} history - The history data for the chart stream (Only the past candles). It's ordered from the oldest to the most recent candle */
             this.history = history.filter(item => item.isCandleClosed);
         } catch (err) {
             throw err;
@@ -32,7 +32,11 @@ class ChartStream {
     }
 
     get candles() {
-        return [...this.history, this.currentStream];
+        return [...this.history, this.currentStream].sort((a, b) => b.openTime - a.openTime);
+    }
+
+    get currentPrice() {
+        return this.currentStream?.close;
     }
 
     get lastClosedCandle() {
