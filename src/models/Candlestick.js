@@ -48,6 +48,16 @@ class Candlestick {
             throw err;
         }
     }
+
+    parseDates() {
+        const result = Object(this);
+        
+        result.openTime = new Date(this.openTime).toLocaleString();
+        result.closeTime = new Date(this.closeTime).toLocaleString();
+        result.currentTime = new Date(this.currentTime).toLocaleString();
+
+        return result;
+    }
 }
 
 module.exports = Candlestick;
