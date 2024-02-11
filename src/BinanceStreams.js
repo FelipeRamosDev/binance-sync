@@ -25,6 +25,7 @@ class BinanceStreams {
 
         this._parentService = () => parentService;
         this.wsBaseURL = wsBaseURL || appConfigs?.URLS?.futuresBaseStream;
+        this.ws;
     }
 
     /**
@@ -166,7 +167,8 @@ class BinanceStreams {
      * @param {Date|number} options.startTime - The options for the chart.
      * @param {Date|number} options.endTime - The options for the chart.
      * @param {number} options.limit - The options for the chart.
-     * @param {Object} options.callbacks The object with the options to configurate the chart.
+     * @param {Object} options.callbacks - The object with the options to configurate the chart.
+     * @param {Class} options.CustomChartStream - A custom Class extending the ChartStream to use on chart creation.
      * @param {Function} options.callbacks.open - Triggered when the websocket is successfuly started.
      * @param {Function} options.callbacks.close - Triggered when the websocket is successfuly closed.
      * @param {Function} options.callbacks.data - Triggered every time a new change arrives.
@@ -174,21 +176,23 @@ class BinanceStreams {
      * @returns {Promise<ChartStream>} Returns a promise with the chart.
      */
     async candlestickChart(symbol, interval, options) {
-        const { callbacks } = Object(options);
+        const { callbacks, CustomChartStream } = Object(options);
         const { open, error, data, close } = Object(callbacks);
 
         return new Promise(async (resolve, reject) => {
             try {
+                const Chart = CustomChartStream || ChartStream;
                 const history = await this.parentService.futuresChart(symbol, interval, options);
-                const chart = new ChartStream({ symbol, interval, history });
+                const chart = new Chart({ symbol, interval, history });
 
                 if (history.error) {
                     return reject(history);
                 }
 
-                await this.currentCandle(symbol, interval, {
+                const ws = await this.currentCandle(symbol, interval, {
                     open: () => {
                         if (typeof open === 'function') {
+                            chart.ws = ws;
                             open(chart);
                             resolve(chart);
                         }
