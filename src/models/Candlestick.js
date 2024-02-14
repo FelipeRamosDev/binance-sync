@@ -49,6 +49,10 @@ class Candlestick {
         }
     }
 
+    /**
+     * To convert itself with dates parsed.
+     * @returns {Candlestick} The self candlestick with dates parsed.
+     */
     parseDates() {
         const result = Object(this);
         
