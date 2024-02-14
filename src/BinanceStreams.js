@@ -232,6 +232,16 @@ class BinanceStreams {
         });
     }
 
+    /**
+     * Add callbacks events to the provided chart.
+     * @param {ChartStream} chart The streamed chart to add callbacks.
+     * @param {Object} callbacks Object with the callbacks accepted.
+     * @param {Object} callbacks.open When the socket is opened.
+     * @param {Object} callbacks.close When the socket is closed.
+     * @param {Object} callbacks.data When the when price changes and the chart is updated.
+     * @param {Object} callbacks.error When an error with the socket connection happens.
+     * @returns {Object} Object with the listenID (used to close the connection later) and the chart.
+     */
     addChartCallbacks(chart, callbacks) {
         const listenID = crypto.randomUUID();
         const { open, close, data, error } = Object(callbacks);
