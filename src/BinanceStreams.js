@@ -1,9 +1,11 @@
+const crypto = require('crypto');
 const BinanceService  = require('./BinanceSync');
 const MarginCall  = require('./models/userDataEvents/MarginCall');
 const AccountUpdate  = require('./models/userDataEvents/AccountUpdate');
 const OrderUpdate  = require('./models/userDataEvents/OrderUpdate');
 const AccountConfigUpdate  = require('./models/userDataEvents/AccountConfigUpdate');
 const UserStream  = require('./models/userDataEvents/UserStream');
+const ChartStream  = require('./models/ChartStream');
 const appConfigs  = require('../configs.json');
 
 /**
@@ -24,11 +26,12 @@ class BinanceStreams {
 
         this._parentService = () => parentService;
         this.wsBaseURL = wsBaseURL || appConfigs?.URLS?.futuresBaseStream;
+        this.ws;
     }
 
     /**
      * Get the parent service.
-     * @return {Object} The parent service.
+     * @return {BinanceService} The parent service.
      */
     get parentService() {
         return this._parentService();
@@ -58,7 +61,7 @@ class BinanceStreams {
      * @param {Function} callbacks.error - Callback function for "error" callback. Receives one argument with the error object.
      * @param {Function} callbacks.data - Callback function for "data" callback. Receives one argument with the data object.
      * @param {Function} callbacks.close - Callback function for "close" callback. It won't receive any argument.
-     * @return {WebSocket} A WebSocket object with the connection.
+     * @return {Promise<UserStream>} A WebSocket object with the connection.
      * @throws {Error} Will throw an error if the response does not contain a listen key or if the response is an instance of Error.
      */
     async userData(callbacks) {
@@ -105,7 +108,7 @@ class BinanceStreams {
     /**
      * Closes the user data.
      * @async
-     * @returns {Object} The closed user data.
+     * @returns {Promise<Object>} The closed user data.
      * @throws {Error} If there is an error during closing.
      */
     async closeUserData() {
@@ -128,10 +131,14 @@ class BinanceStreams {
      * @param {string} symbol - The symbol for the data.
      * @param {string} interval - The interval for the data.
      * @param {Object} callbacks - The callbacks for the WebSocket events.
-     * @returns {WebSocket} The WebSocket object with the connection.
+     * @param {Function} callbacks.open - Triggered when the websocket is successfuly started.
+     * @param {Function} callbacks.close - Triggered when the websocket is successfuly closed.
+     * @param {Function} callbacks.data - Triggered every time a new change arrives.
+     * @param {Function} callbacks.error - Triggered on errors.
+     * @returns {Promise<WebSocket>} The WebSocket object with the connection.
      * @throws {Error} If there is an error during the request.
      */
-    async klineCandlestick(symbol, interval, callbacks) {
+    async currentCandle(symbol, interval, callbacks) {
         const { open, error, data, close } = Object(callbacks);
 
         try {
@@ -150,6 +157,112 @@ class BinanceStreams {
         } catch (err) {
             throw err;
         }
+    }
+
+    /**
+     * To get a complete chart stream for an asseet.
+     * @async
+     * @param {string} symbol The symbol to get the chart. Example: 'BTCUSDT'
+     * @param {string} interval The time interval for the chart. Example '15m'
+     * @param {Object} options The object with the options to configurate the chart.
+     * @param {Date|number} options.startTime - The options for the chart.
+     * @param {Date|number} options.endTime - The options for the chart.
+     * @param {number} options.limit - The options for the chart.
+     * @param {Object} options.callbacks - The object with the options to configurate the chart.
+     * @param {Class} options.CustomChartStream - A custom Class extending the ChartStream to use on chart creation.
+     * @param {Function} options.callbacks.open - Triggered when the websocket is successfuly started.
+     * @param {Function} options.callbacks.close - Triggered when the websocket is successfuly closed.
+     * @param {Function} options.callbacks.data - Triggered every time a new change arrives.
+     * @param {Function} options.callbacks.error - Triggered on errors.
+     * @returns {Promise<Object>} Returns a promise with the listenID (string) and the chart (ChartStream).
+     */
+    async candlestickChart(symbol, interval, options) {
+        const { callbacks, CustomChartStream } = Object(options);
+        
+        return new Promise(async (resolve, reject) => {
+            try {
+                const buffChart = this.parentService.getBuffChart(symbol, interval);
+                if (buffChart) {
+                    return resolve(this.addChartCallbacks(buffChart, callbacks));
+                }
+
+                const Chart = CustomChartStream || ChartStream;
+                const history = await this.parentService.futuresChart(symbol, interval, options);
+
+                if (history.error) {
+                    if (typeof callbacks?.error === 'function') {
+                        return callbacks.error(history);
+                    }
+
+                    return reject(history);
+                }
+
+                const ws = await this.currentCandle(symbol, interval, {
+                    open: () => {
+                        const chart = new Chart({ symbol, interval, history });
+                        this.parentService.setBuffChart(chart, ws, symbol, interval);
+
+                        resolve(this.addChartCallbacks(chart, callbacks));
+                    },
+                    close: () => {
+                        const chart = this.parentService.getBuffChart(symbol, interval);
+
+                        if (chart) {
+                            process.emit(chart.buildEventName('close'), chart);
+                        }
+                    },
+                    data: (snapshot) => {
+                        const chart = this.parentService.getBuffChart(symbol, interval);
+
+                        if (chart) {
+                            chart.updateSnapshot(snapshot);
+                        }
+                    },
+                    error: (err) => {
+                        const chart = this.parentService.getBuffChart(symbol, interval);
+
+                        if (chart) {
+                            process.emit(chart.buildEventName('error'), err);
+                        }
+                    }
+                });
+            } catch (err) {
+                return reject(err);
+            }
+        });
+    }
+
+    /**
+     * Add callbacks events to the provided chart.
+     * @param {ChartStream} chart The streamed chart to add callbacks.
+     * @param {Object} callbacks Object with the callbacks accepted.
+     * @param {Object} callbacks.open When the socket is opened.
+     * @param {Object} callbacks.close When the socket is closed.
+     * @param {Object} callbacks.data When the when price changes and the chart is updated.
+     * @param {Object} callbacks.error When an error with the socket connection happens.
+     * @returns {Object} Object with the listenID (used to close the connection later) and the chart.
+     */
+    addChartCallbacks(chart, callbacks) {
+        const listenID = crypto.randomUUID();
+        const { open, close, data, error } = Object(callbacks);
+
+        if (typeof open === 'function') {
+            open(chart);
+        }
+
+        if (typeof close === 'function') {
+            chart.on('close', close, listenID);
+        }
+        
+        if (typeof data === 'function') {
+            chart.on('update', data, listenID);
+        }
+        
+        if (typeof error === 'function') {
+            chart.on('error', error, listenID);
+        }
+
+        return { listenID, chart };
     }
 }
 
