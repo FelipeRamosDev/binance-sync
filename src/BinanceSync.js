@@ -1,3 +1,5 @@
+require('./globals');
+
 const AJAX  = require('./BinanceAJAX');
 const BinanceWS  = require('./BinanceWS');
 
@@ -53,6 +55,29 @@ class BinanceSync {
     get streams() {
         const BinanceStreams  = require('./BinanceStreams');
         return new BinanceStreams(this);
+    }
+
+    getBuffChart(symbol, interval) {
+        const charts = global.binanceSync?.charts;
+        const assetCharts = charts && charts[symbol];
+        const chart = assetCharts && assetCharts[interval];
+
+        return chart;
+    }
+
+    setBuffChart(newChart, ws, symbol, interval) {
+        const { charts } = Object(global.binanceSync);
+
+        if (!charts[symbol]) {
+            charts[symbol] = {};
+        }
+
+        if (!this.getBuffChart(symbol, interval)) {
+            newChart.ws = ws;
+            charts[symbol][interval] = newChart;
+        }
+
+        return this.getBuffChart(symbol, interval);
     }
 
     /**

@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const BinanceService  = require('./BinanceSync');
 const MarginCall  = require('./models/userDataEvents/MarginCall');
 const AccountUpdate  = require('./models/userDataEvents/AccountUpdate');
@@ -173,44 +174,55 @@ class BinanceStreams {
      * @param {Function} options.callbacks.close - Triggered when the websocket is successfuly closed.
      * @param {Function} options.callbacks.data - Triggered every time a new change arrives.
      * @param {Function} options.callbacks.error - Triggered on errors.
-     * @returns {Promise<ChartStream>} Returns a promise with the chart.
+     * @returns {Promise<Object>} Returns a promise with the listenID (string) and the chart (ChartStream).
      */
     async candlestickChart(symbol, interval, options) {
         const { callbacks, CustomChartStream } = Object(options);
-        const { open, error, data, close } = Object(callbacks);
-
+        
         return new Promise(async (resolve, reject) => {
             try {
+                const buffChart = this.parentService.getBuffChart(symbol, interval);
+                if (buffChart) {
+                    return resolve(this.addChartCallbacks(buffChart, callbacks));
+                }
+
                 const Chart = CustomChartStream || ChartStream;
                 const history = await this.parentService.futuresChart(symbol, interval, options);
-                const chart = new Chart({ symbol, interval, history });
 
                 if (history.error) {
+                    if (typeof callbacks?.error === 'function') {
+                        return callbacks.error(history);
+                    }
+
                     return reject(history);
                 }
 
                 const ws = await this.currentCandle(symbol, interval, {
                     open: () => {
-                        if (typeof open === 'function') {
-                            chart.ws = ws;
-                            open(chart);
-                            resolve(chart);
-                        }
+                        const chart = new Chart({ symbol, interval, history });
+                        this.parentService.setBuffChart(chart, ws, symbol, interval);
+
+                        resolve(this.addChartCallbacks(chart, callbacks));
                     },
                     close: () => {
-                        if (typeof close === 'function') {
-                            close();
+                        const chart = this.parentService.getBuffChart(symbol, interval);
+
+                        if (chart) {
+                            process.emit(chart.buildEventName('close'), chart);
                         }
                     },
                     data: (snapshot) => {
-                        if (typeof data === 'function') {
+                        const chart = this.parentService.getBuffChart(symbol, interval);
+
+                        if (chart) {
                             chart.updateSnapshot(snapshot);
-                            data(chart);
                         }
                     },
                     error: (err) => {
-                        if (typeof error === 'function') {
-                            error(err);
+                        const chart = this.parentService.getBuffChart(symbol, interval);
+
+                        if (chart) {
+                            process.emit(chart.buildEventName('error'), err);
                         }
                     }
                 });
@@ -218,6 +230,29 @@ class BinanceStreams {
                 return reject(err);
             }
         });
+    }
+
+    addChartCallbacks(chart, callbacks) {
+        const listenID = crypto.randomUUID();
+        const { open, close, data, error } = Object(callbacks);
+
+        if (typeof open === 'function') {
+            open(chart);
+        }
+
+        if (typeof close === 'function') {
+            chart.on('close', close, listenID);
+        }
+        
+        if (typeof data === 'function') {
+            chart.on('update', data, listenID);
+        }
+        
+        if (typeof error === 'function') {
+            chart.on('error', error, listenID);
+        }
+
+        return { listenID, chart };
     }
 }
 
