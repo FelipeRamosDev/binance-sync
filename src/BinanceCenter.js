@@ -1,4 +1,3 @@
-const Binance  = require('node-binance-api');
 const {Axios}  = require('axios');
 const exchangesConfig  = require('../../../exchange-config.json');
 const AssetData  = require('./models/AssetData');
@@ -18,13 +17,6 @@ class BinanceCenter {
         this.exchangeFilters = [];
         this.serverTime;
         this.timezone = '';
-
-        try {
-            // Create the main Binance connection
-            this.connection = new Binance();
-        } catch(err) {
-            throw new Error('binance.connection.binance_api_init');
-        }
     }
 
     /**
