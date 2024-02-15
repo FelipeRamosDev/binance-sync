@@ -97,6 +97,43 @@ class BinanceSync {
     }
 
     /**
+     * To get a chart from the charts cache, if the chart wasn't initialized yet, this will return undefined.
+     * @param {string} symbol The chart symbol. (BTCUSDT)
+     * @param {string} interval The chart interval. (15m)
+     * @returns 
+     */
+    getBuffChart(symbol, interval) {
+        const charts = global.binanceSync?.charts;
+        const assetCharts = charts && charts[symbol];
+        const chart = assetCharts && assetCharts[interval];
+
+        return chart;
+    }
+
+    /**
+     * To set a chart on charts cache.
+     * @param {ChartStream} newChart 
+     * @param {WebSocket} ws The websocket object
+     * @param {string} symbol The chart symbol. (BTCUSDT)
+     * @param {string} interval The chart interval. (15m)
+     * @returns 
+     */
+    setBuffChart(newChart, ws, symbol, interval) {
+        const { charts } = Object(global.binanceSync);
+
+        if (!charts[symbol]) {
+            charts[symbol] = {};
+        }
+
+        if (!this.getBuffChart(symbol, interval)) {
+            newChart.ws = ws;
+            charts[symbol][interval] = newChart;
+        }
+
+        return this.getBuffChart(symbol, interval);
+    }
+
+    /**
      * Gets the exchange information.
      * @async
      * @return {Promise<Object>} The exchange information.
