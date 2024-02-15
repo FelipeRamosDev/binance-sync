@@ -1,14 +1,15 @@
 require('./globals');
 
-const BinanceStreams = require('./BinanceStreams');
 const AJAX  = require('./BinanceAJAX');
 const BinanceWS  = require('./BinanceWS');
 const ChartStream = require('./models/ChartStream');
 
 /**
+ * @class
  * BinanceSync class for synchronizing with Binance API.
  */
 class BinanceSync {
+    static BinanceStreams = require('./BinanceStreams');
     /**
      * Constructs a new BinanceSync instance.
      * @param {string} API_KEY - The API key for Binance.
@@ -52,10 +53,10 @@ class BinanceSync {
 
     /**
      * Gets the streams.
-     * @return {BinanceStreams} The BinanceStreams object.
+     * @return {BinanceSync.BinanceStreams} The BinanceStreams object.
      */
     get streams() {
-        return new BinanceStreams(this);
+        return new BinanceSync.BinanceStreams(this);
     }
 
     /**
