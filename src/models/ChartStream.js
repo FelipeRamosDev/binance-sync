@@ -127,9 +127,9 @@ class ChartStream {
                 process.emit(this.buildEventName('close'), this);
             }
 
-            process.off(this.buildEventName('update'), listeners?.update);
-            process.off(this.buildEventName('close'), listeners?.close);
-            process.off(this.buildEventName('error'), listeners?.error);
+            listeners?.update && process.off(this.buildEventName('update'), listeners?.update);
+            listeners?.close && process.off(this.buildEventName('close'), listeners?.close);
+            listeners?.error && process.off(this.buildEventName('error'), listeners?.error);
 
             delete this.listeners[listenID];
 
@@ -137,9 +137,13 @@ class ChartStream {
                 this.close();
             }
         } else {
-            process.off(this.buildEventName('update'));
-            process.off(this.buildEventName('close'));
-            process.off(this.buildEventName('error'));
+            Object.keys(this.listeners).map(listener => {
+                listener?.update && process.off(this.buildEventName('update'), listener?.update);
+                listener?.close && process.off(this.buildEventName('close'), listener?.close);
+                listener?.error && process.off(this.buildEventName('error'), listener?.error);
+
+                delete this.listeners[listenID];
+            });
 
             this.close();
         }
