@@ -74,20 +74,6 @@ class BinanceSync {
     }
 
     /**
-     * To get a chart from the charts cache, if the chart wasn't initialized yet, this will return undefined.
-     * @param {string} symbol The chart symbol. (BTCUSDT)
-     * @param {string} interval The chart interval. (15m)
-     * @returns 
-     */
-    getBuffChart(symbol, interval) {
-        const charts = global.binanceSync?.charts;
-        const assetCharts = charts && charts[symbol];
-        const chart = assetCharts && assetCharts[interval];
-
-        return chart;
-    }
-
-    /**
      * To set a chart on charts cache.
      * @param {ChartStream} newChart 
      * @param {WebSocket} ws The websocket object
@@ -318,7 +304,7 @@ class BinanceSync {
             });
 
             if (newOrder.code && newOrder.msg) {
-                return new Error({ message: `[${newOrder.code}] ${newOrder.msg}` });
+                return { error: true, code: newOrder.code, message: newOrder.msg };
             }
 
             return newOrder;
