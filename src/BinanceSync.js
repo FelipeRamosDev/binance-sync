@@ -106,7 +106,7 @@ class BinanceSync {
         try {
             const res = await this.reqHTTP.GET('/fapi/v1/exchangeInfo');
             if (res.code && res.msg) {
-                throw new Error(`[${res.code}] ${res.msg}`);
+                return Error.new(res.code, res.msg);
             }
 
             return res;
@@ -133,7 +133,7 @@ class BinanceSync {
 
             const res = await this.reqHTTP.POST('/fapi/v1/leverage', { symbol, leverage });
             if (res.code && res.msg) {
-                throw new Error(`[${res.code}] ${res.msg}`);
+                return Error.new(res.code, res.msg);
             }
 
             return res;
@@ -158,7 +158,7 @@ class BinanceSync {
 
             const res = await this.reqHTTP.POST('/fapi/v1/marginType', { symbol, marginType });
             if (res.code && res.msg) {
-                throw new Error(`[${res.code}] ${res.msg}`);
+                return Error.new(res.code, res.msg);
             }
 
             return res;
@@ -185,7 +185,7 @@ class BinanceSync {
             }
 
             if (response.code && response.msg) {
-                throw new Error(`[${response.code}] ${response.msg}`);
+                return Error.new(response.code, response.msg);
             }
 
             if (Array.isArray(response)) {
@@ -210,7 +210,7 @@ class BinanceSync {
         try {
             const res = await this.reqHTTP.GET('/fapi/v2/account');
             if (res.code && res.msg) {
-                throw new Error(`[${res.code}] ${res.msg}`);
+                return Error.new(res.code, res.msg);
             }
 
             return res;
@@ -229,7 +229,7 @@ class BinanceSync {
         try {
             const res = await this.reqHTTP.GET('/fapi/v2/balance');
             if (res.code && res.msg) {
-                throw new Error(`[${res.code}] ${res.msg}`);
+                return Error.new(res.code, res.msg);
             }
 
             return res;
@@ -264,7 +264,7 @@ class BinanceSync {
             });
 
             if (!Array.isArray(candles)) {
-                return { error: true, code: candles.code, message: candles.msg };
+                return Error.new(candles.code, candles.msg);
             }
 
             return candles.map(candle => new Candlestick({
@@ -280,7 +280,7 @@ class BinanceSync {
                 isCandleClosed: true
             }));
         } catch (err) {
-            throw new Error(err);
+            throw Error.new(err);
         }
     }
 
@@ -304,7 +304,7 @@ class BinanceSync {
             });
 
             if (newOrder.code && newOrder.msg) {
-                return { error: true, code: newOrder.code, message: newOrder.msg };
+                return Error.new(newOrder.code, newOrder.msg);
             }
 
             return newOrder;
@@ -326,7 +326,7 @@ class BinanceSync {
             const cancelled = await this.reqHTTP.DELETE('/fapi/v1/order', { symbol, origClientOrderId: clientOrderId });
 
             if (cancelled.code && cancelled.msg) {
-                return new Error(`[${cancelled.code}] ${cancelled.msg}`);
+                return Error.new(cancelled.code, cancelled.msg);
             }
 
             return cancelled;
@@ -347,7 +347,7 @@ class BinanceSync {
         try {
             const res = await this.reqHTTP.DELETE('/fapi/v1/batchOrders', { symbol, orderidlist: orderIds });
             if (res.code && res.msg) {
-                throw new Error(`[${res.code}] ${res.msg}`);
+                return Error.new(res.code, res.msg);
             }
 
             return res;
@@ -367,7 +367,7 @@ class BinanceSync {
         try {
             const res = this.reqHTTP.DELETE('/fapi/v1/allOpenOrders', { symbol });
             if (res.code && res.msg) {
-                throw new Error(`[${res.code}] ${res.msg}`);
+                throw Error.new(res.code, res.msg);
             }
 
             return res;
