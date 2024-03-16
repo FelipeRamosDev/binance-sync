@@ -64,14 +64,24 @@ class BinanceStreams {
      * @return {Promise<UserStream>} A WebSocket object with the connection.
      * @throws {Error} Will throw an error if the response does not contain a listen key or if the response is an instance of Error.
      */
-    async userData(callbacks) {
+    async userData(callbacks, keepAlive) {
         const { open, error, data, close } = Object(callbacks);
+        const newUserStream = new UserStream();
+
+        if (keepAlive) {
+            newUserStream.pingTimer = this.setPingKeepAlive();
+        }
 
         try {
-            const ws = await this.parentService.webSocket.subscribe({
+            newUserStream.ws = await this.parentService.webSocket.subscribe({
                 callbacks: {
                     open,
-                    close,
+                    close: (...args) => {
+                        clearInterval(newUserStream.pingTimer);
+                        if (typeof close === 'function') {
+                            close(...args);
+                        }
+                    },
                     error,
                     data: (input) => {
                         if (typeof data !== 'function') {
@@ -99,9 +109,33 @@ class BinanceStreams {
                 }
             });
 
-            return new UserStream({ ws });
+            return newUserStream;
         } catch (err) {
             throw err;
+        }
+    }
+
+    setPingKeepAlive() {
+        try {
+            return setInterval(() => {
+                this.userDataKeepAlivePing();
+            }, 30000);
+        } catch (err) {
+            throw new Error.Log(err);
+        }
+    }
+    
+    async userDataKeepAlivePing(callbacks) {
+        try {
+            const pong = await this.parentService.webSocket.pingListenKey();
+            
+            if (pong.error) {
+                return await this.userData(callbacks, true)
+            }
+
+            return pong;
+        } catch (err) {
+            throw new Error.Log(err);
         }
     }
 

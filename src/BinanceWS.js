@@ -41,21 +41,31 @@ class BinanceWS {
      * @return {Promise<string>} The listen key.
      * @throws {Error} If the response does not contain a listen key or if the response is an instance of Error.
      */
-    async getListenKey(noKeepAlive) {
+    async getListenKey() {
         try {
             const response = await this.parentService.reqHTTP.POST('/fapi/v1/listenKey');
 
             if (response.code && response.msg) {
-                throw new Error(`[${response.code}] ${response.msg}`);
-            }
-
-            if (!noKeepAlive) {
-                await this.parentService.reqHTTP.PUT('/fapi/v1/listenKey');
+                return Error.new(response.code, response.msg);
             }
 
             return response.listenKey;
         } catch (err) {
-            throw err;
+            throw Error.new(err);
+        }
+    }
+
+    async pingListenKey() {
+        try {
+            const ping = await this.parentService.reqHTTP.PUT('/fapi/v1/listenKey');
+
+            if (ping.code === -1125 || ping.msg === 'This listenKey does not exist.') {
+                return Error.new(ping.code, ping.msg);
+            }
+
+            return { success: true, ...ping };
+        } catch (err) {
+            throw Error.new(err);
         }
     }
     
