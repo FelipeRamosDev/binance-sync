@@ -11,13 +11,19 @@ class UserStream {
      */
     constructor(setup) {
         try {
-            const { ws, listeners } = Object(setup);
+            const { ws, listeners, pingTimer } = Object(setup);
 
             this.ws = ws;
             this.listeners = {...listeners};
+            this.pingTimer = pingTimer;
         } catch (err) {
             throw err;
         }
+    }
+
+    close() {
+        this.ws.close();
+        return this.ws.terminate();
     }
 }
 
