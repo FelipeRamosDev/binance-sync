@@ -6,7 +6,7 @@ const OrderUpdate  = require('./models/userDataEvents/OrderUpdate');
 const AccountConfigUpdate  = require('./models/userDataEvents/AccountConfigUpdate');
 const UserStream  = require('./models/userDataEvents/UserStream');
 const ChartStream  = require('./models/ChartStream');
-const appConfigs  = require('../configs.json');
+const appConfigs = require('../configs.json');
 
 /**
  * Representing BinanceStreams, a class with to handle WebSockets streams on Binance API.
@@ -119,7 +119,7 @@ class BinanceStreams {
         try {
             return setInterval(() => {
                 this.userDataKeepAlivePing();
-            }, 30000);
+            }, appConfigs.connections.streamPingInterval);
         } catch (err) {
             throw new Error.Log(err);
         }
