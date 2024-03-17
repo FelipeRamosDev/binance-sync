@@ -125,9 +125,7 @@ class BinanceStreams {
                                     onReconnecting();
                                 }
 
-                                await newUserStream.close();
                                 const reUserStream = await this.userData(options);
-
                                 if (typeof onReconnected === 'function') {
                                     onReconnected(reUserStream);
                                 }
@@ -231,12 +229,10 @@ class BinanceStreams {
             const ws = await this.parentService.webSocket.subscribe({
                 endpoint: `${symbol.toLowerCase()}@kline_${interval}`,
                 isPublic: true,
-                callbacks: {
-                    open,
-                    close,
-                    data,
-                    error
-                }
+                onOpen: open,
+                onClose: close,
+                onData: data,
+                onError: error
             });
 
             return ws;
