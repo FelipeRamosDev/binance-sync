@@ -1,4 +1,4 @@
-# binance-sync v0.1.4 BETA
+# binance-sync v0.1.5 BETA
 It's a service module to interact with Binance
 
 ## Binance API - Endpoints

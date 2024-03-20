@@ -41,7 +41,8 @@ class BinanceCenter {
 
             if (!bracket) return;
             item.maxLeverage = bracket.maxLeverage;
-        })
+            item.minNotional = Number(item.filters.MIN_NOTIONAL.notional)
+        });
     
         return { success: true };
     }
