@@ -335,6 +335,22 @@ class BinanceSync {
         }
     }
 
+    async futuresQueryOrder(symbol, filter) {
+        const { orderId, origClientOrderId } = Object(filter);
+
+        try {
+            const order = await this.reqHTTP.GET('/fapi/v1/order', { symbol, orderId, origClientOrderId });
+
+            if (order.code && order.message) {
+                return Error.new(order.code, order.message);
+            }
+
+            return order;
+        } catch (err) {
+            throw new Error.Log(err);
+        }
+    }
+
     /**
      * Cancels multiple orders.
      * @async

@@ -1,6 +1,7 @@
 if (!global.binanceSync) {
     global.binanceSync = {
-        charts: {}
+        charts: {},
+        userDataStream: {}
     };
 
     Error.new = (name, message, code) => {
