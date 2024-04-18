@@ -263,33 +263,10 @@ class OrderData {
              * @member {string}
              */
             this.gtd = gtd;
-
         } catch (err) {
             // Throws an error if there is an issue during setup.
             throw err;
         }
-    }
-
-    toOrderLocal() {
-        return {
-            symbol: this.symbol,
-            clientOrderId: this.clientOrderId,
-            timeInForce: this.timeInForce,
-            origQty: this.originalQuantity,
-            avgPrice: this.averagePrice,
-            stopPrice: this.stopPrice,
-            status: this.orderStatus,
-            orderId: this.orderId,
-            reduceOnly: this.isReduceOnly,
-            workingType: this.workingType,
-            origType: this.originalOrderType,
-            price: this.originalPrice,
-            positionSide: this.positionSide,
-            activationPrice: this.activationPrice,
-            priceProtect: this.isPriceProtected,
-            priceMatch: this.priceMatchMode,
-            type: this.orderType
-        };
     }
 }
 
