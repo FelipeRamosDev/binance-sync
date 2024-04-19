@@ -34,7 +34,7 @@ const OrderUpdate  = require('./models/userDataEvents/OrderUpdate');
 const AccountConfigUpdate  = require('./models/userDataEvents/AccountConfigUpdate');
 const UserStream  = require('./models/userDataEvents/UserStream');
 const ChartStream  = require('./models/ChartStream');
-const appConfigs  = require('../configs.json');
+const appConfigs = require('../configs.json');
 
 /**
  * Representing BinanceStreams, a class with to handle WebSockets streams on Binance API.
@@ -81,70 +81,154 @@ class BinanceStreams {
         return this.parentService.SECRET_KEY;
     }
 
+    getUserDataStream(id) {
+        let userStream = binanceSync.userDataStream[id];
+        return userStream;
+    }
+
+    setUserDataStream(value) {
+        binanceSync.userDataStream[value.id] = value;
+        return binanceSync.userDataStream[value.id];
+    }
+
     /**
      * Open a WebSocket connection to recive updates of user's data.
      * @async
-     * @param {Object} callbacks - Object with all callbacks to use on the connection.
-     * @param {Function} callbacks.open - Callback function for "open" callback. It won't receive any argument.
-     * @param {Function} callbacks.error - Callback function for "error" callback. Receives one argument with the error object.
-     * @param {Function} callbacks.data - Callback function for "data" callback. Receives one argument with the data object.
-     * @param {Function} callbacks.close - Callback function for "close" callback. It won't receive any argument.
+     * @param {Object} options - The options object
+     * @param {boolean} options.keepAlive - If this won't set to true, the user stream will be closed after 60 min. To persist opened, this must be true.
+     * @param {Function} options.onOpen - The callback function to execute when it's opened, it receive the UserStream as the first parameter.
+     * @param {Function} options.onError - The callback function to execute when an error occur, it receive the error object as the first parameter.
+     * @param {Function} options.onData - The callback function to execute when a data is received, it receive the data object as the first parameter.
+     * @param {Function} options.onClose - The callback function to execute when is opened, it receive the Websocket connection as the first parameter.
+     * @param {Function} options.onReconnecting - The callback function to execute when the socket connection was closed and it was reconnected automatically, it receive the UserStream as the first parameter.
      * @return {Promise&lt;UserStream>} A WebSocket object with the connection.
      * @throws {Error} Will throw an error if the response does not contain a listen key or if the response is an instance of Error.
      */
-    async userData(callbacks) {
-        const { open, error, data, close } = Object(callbacks);
+    async userData(options) {
+        const { keepAlive, onOpen, onError, onData, onClose, onReconnecting, onReconnected } = Object(options);
+        const newUserStream = new UserStream({ streams: this });
+
+        if (keepAlive) {
+            newUserStream.pingTimer = this.setPingKeepAlive();
+        }
 
         try {
             const ws = await this.parentService.webSocket.subscribe({
-                callbacks: {
-                    open,
-                    close,
-                    error,
-                    data: (input) => {
-                        if (typeof data !== 'function') {
-                            return;
-                        }
+                onError,
+                onOpen: () => {
+                    this.setUserDataStream(newUserStream);
 
-                        switch (input.e) {
-                            case 'MARGIN_CALL': {
-                                return data(new MarginCall(input));
+                    if (typeof onOpen === 'function') {
+                        onOpen(newUserStream);
+                    }
+                },
+                onClose: () => {
+                    if (typeof onClose === 'function') {
+                        onClose(newUserStream);
+                    }
+                },
+                onData: async (input) => {
+                    if (typeof onData !== 'function') {
+                        return;
+                    }
+
+                    switch (input.e) {
+                        case 'MARGIN_CALL': {
+                            return onData(new MarginCall(input));
+                        }
+                        case 'ACCOUNT_UPDATE': {
+                            return onData(new AccountUpdate(input));
+                        }
+                        case 'ORDER_TRADE_UPDATE': {
+                            return onData(new OrderUpdate(input));
+                        }
+                        case 'ACCOUNT_CONFIG_UPDATE': {
+                            return onData(new AccountConfigUpdate(input));
+                        }
+                        case 'listenKeyExpired': {
+                            onData(input);
+
+                            if (this.getUserDataStream(input.listenKey)) {
+                                if (typeof onReconnecting === 'function') {
+                                    onReconnecting();
+                                }
+
+                                const reUserStream = await this.userData(options);
+                                if (typeof onReconnected === 'function') {
+                                    onReconnected(reUserStream);
+                                }
+
+                                this.setUserDataStream(reUserStream);
                             }
-                            case 'ACCOUNT_UPDATE': {
-                                return data(new AccountUpdate(input));
-                            }
-                            case 'ORDER_TRADE_UPDATE': {
-                                return data(new OrderUpdate(input));
-                            }
-                            case 'ACCOUNT_CONFIG_UPDATE': {
-                                return data(new AccountConfigUpdate(input));
-                            }
-                            default: {
-                                return data(input);
-                            }
+
+                            return;
+                        }   
+                        default: {
+                            return onData(input);
                         }
                     }
                 }
             });
 
-            return new UserStream({ ws });
+            newUserStream.appendWS(ws);
+            return newUserStream;
         } catch (err) {
             throw err;
         }
     }
 
     /**
+     * To set a interval of 45min execution of BinanceStreams.userDataKeepAlivePing method
+     * @returns The setInterval return to be stored and cleared later
+     */
+    setPingKeepAlive() {
+        try {
+            return setInterval(() => {
+                this.userDataKeepAlivePing();
+            }, appConfigs.connections.streamPingInterval);
+        } catch (err) {
+            throw new Error.Log(err);
+        }
+    }
+
+    /**
+     * Send a ping to Binance in order to keep it alive
+     * @async
+     * @returns {Object} The ping response.
+     */
+    async userDataKeepAlivePing() {
+        try {
+            const pong = await this.parentService.webSocket.pingListenKey();
+            
+            if (pong.error) {
+                return;
+            }
+
+            return pong;
+        } catch (err) {
+            throw new Error.Log(err);
+        }
+    }
+
+    /**
      * Closes the user data.
      * @async
+     * @param {UserStream} userStream - The user stream object that needs to be closed.
      * @returns {Promise&lt;Object>} The closed user data.
      * @throws {Error} If there is an error during closing.
      */
-    async closeUserData() {
+    async closeUserData(userStream) {
         try {
+            const userStreamID = userStream?.listenKey;
             const closed = await this.parentService.reqHTTP.DELETE('/fapi/v1/listenKey');
+            const userStreamCache = this.getUserDataStream(userStreamID);
 
             if (Object.keys(closed).length) {
                 throw closed;
+            }
+
+            if (userStreamCache) {
+                userStreamCache.close();
             }
 
             return closed;
@@ -173,12 +257,10 @@ class BinanceStreams {
             const ws = await this.parentService.webSocket.subscribe({
                 endpoint: `${symbol.toLowerCase()}@kline_${interval}`,
                 isPublic: true,
-                callbacks: {
-                    open,
-                    close,
-                    data,
-                    error
-                }
+                onOpen: open,
+                onClose: close,
+                onData: data,
+                onError: error
             });
 
             return ws;
@@ -311,7 +393,7 @@ module.exports = BinanceStreams;
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Wed Feb 14 2024 16:17:55 GMT-0300 (Horário Padrão de Brasília)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Apr 19 2024 16:36:39 GMT-0300 (Horário Padrão de Brasília)
 </footer>
 
 <script> prettyPrint(); </script>
