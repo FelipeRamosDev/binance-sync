@@ -63,7 +63,7 @@ class BinanceSync {
      * To get a chart from the charts cache, if the chart wasn't initialized yet, this will return undefined.
      * @param {string} symbol The chart symbol. (BTCUSDT)
      * @param {string} interval The chart interval. (15m)
-     * @returns 
+     * @returns {object}
      */
     getBuffChart(symbol, interval) {
         const charts = global.binanceSync?.charts;
@@ -79,7 +79,7 @@ class BinanceSync {
      * @param {WebSocket} ws The websocket object
      * @param {string} symbol The chart symbol. (BTCUSDT)
      * @param {string} interval The chart interval. (15m)
-     * @returns 
+     * @returns {object}
      */
     setBuffChart(newChart, ws, symbol, interval) {
         const { charts } = Object(global.binanceSync);
@@ -335,6 +335,50 @@ class BinanceSync {
         }
     }
 
+    /**
+     * Fetches all futures orders for a given symbol and filter. It takes a symbol and a filter as parameters. The filter is an object that can contain orderId, startTime, endTime, and limit properties.
+     *
+     * If the response from the API contains a code and a message, it returns a new Error with the code and message from the response.
+     *
+     * If an error occurs during the execution of the function, it throws a new Error.Log with the caught error.
+     *
+     * @param {string} symbol - The symbol for which to fetch all futures orders. (Mandatory)
+     * @param {object} filter - An object that can contain orderId, startTime, endTime, and limit properties.
+     * @param {number} filter.orderId - The order ID number
+     * @param {date} filter.startTime - Timestamp of start time.
+     * @param {date} filter.endTime - Timestamp of end time.
+     * @param {number} filter.limit - Maximum number of orders to retreive.
+     * @returns {object} - The futures orders for the given symbol and filter.
+     * @throws {Error} - If an error occurs during the execution of the function.
+     */
+    async futuresAllOrders(symbol, filter) {
+        try {
+            const orders = await this.reqHTTP.GET('/fapi/v1/allOrders', { ...filter, symbol });
+
+            if (orders.code && orders.message) {
+                return Error.new(orders.code, orders.message);
+            }
+
+            return orders;
+        } catch (err) {
+            throw new Error.Log(err);
+        }
+    }
+
+    /**
+     * Queries a specific futures order for a given symbol and filter. The filter is an object that contains orderId and origClientOrderId properties.
+     *
+     * If the response from the API contains a code and a message, it returns a new Error with the code and message from the response.
+     *
+     * If an error occurs during the execution of the function, it throws a new Error.Log with the caught error.
+     *
+     * @param {string} symbol - The symbol for which to query the futures order.
+     * @param {object} filter - An object that contains orderId and origClientOrderId properties.
+     * @param {number} filter.orderId - A number that contains the orderId for the order.
+     * @param {string} filter.origClientOrderId - A string that contains the origClientOrderId for the order.
+     * @returns {object} - The futures order for the given symbol and filter.
+     * @throws {Error} - If an error occurs during the execution of the function.
+     */
     async futuresQueryOrder(symbol, filter) {
         const { orderId, origClientOrderId } = Object(filter);
 
