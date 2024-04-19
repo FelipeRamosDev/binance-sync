@@ -28,15 +28,16 @@
         <article>
             <pre class="prettyprint source linenums"><code>require('./globals');
 
-const BinanceStreams = require('./BinanceStreams');
 const AJAX  = require('./BinanceAJAX');
 const BinanceWS  = require('./BinanceWS');
 const ChartStream = require('./models/ChartStream');
 
 /**
+ * @class
  * BinanceSync class for synchronizing with Binance API.
  */
 class BinanceSync {
+    static BinanceStreams = require('./BinanceStreams');
     /**
      * Constructs a new BinanceSync instance.
      * @param {string} API_KEY - The API key for Binance.
@@ -80,17 +81,17 @@ class BinanceSync {
 
     /**
      * Gets the streams.
-     * @return {BinanceStreams} The BinanceStreams object.
+     * @return {BinanceSync.BinanceStreams} The BinanceStreams object.
      */
     get streams() {
-        return new BinanceStreams(this);
+        return new BinanceSync.BinanceStreams(this);
     }
 
     /**
      * To get a chart from the charts cache, if the chart wasn't initialized yet, this will return undefined.
      * @param {string} symbol The chart symbol. (BTCUSDT)
      * @param {string} interval The chart interval. (15m)
-     * @returns 
+     * @returns {object}
      */
     getBuffChart(symbol, interval) {
         const charts = global.binanceSync?.charts;
@@ -106,7 +107,7 @@ class BinanceSync {
      * @param {WebSocket} ws The websocket object
      * @param {string} symbol The chart symbol. (BTCUSDT)
      * @param {string} interval The chart interval. (15m)
-     * @returns 
+     * @returns {object}
      */
     setBuffChart(newChart, ws, symbol, interval) {
         const { charts } = Object(global.binanceSync);
@@ -133,7 +134,7 @@ class BinanceSync {
         try {
             const res = await this.reqHTTP.GET('/fapi/v1/exchangeInfo');
             if (res.code &amp;&amp; res.msg) {
-                throw new Error(`[${res.code}] ${res.msg}`);
+                return Error.new(res.code, res.msg);
             }
 
             return res;
@@ -160,7 +161,7 @@ class BinanceSync {
 
             const res = await this.reqHTTP.POST('/fapi/v1/leverage', { symbol, leverage });
             if (res.code &amp;&amp; res.msg) {
-                throw new Error(`[${res.code}] ${res.msg}`);
+                return Error.new(res.code, res.msg);
             }
 
             return res;
@@ -185,7 +186,7 @@ class BinanceSync {
 
             const res = await this.reqHTTP.POST('/fapi/v1/marginType', { symbol, marginType });
             if (res.code &amp;&amp; res.msg) {
-                throw new Error(`[${res.code}] ${res.msg}`);
+                return Error.new(res.code, res.msg);
             }
 
             return res;
@@ -212,7 +213,7 @@ class BinanceSync {
             }
 
             if (response.code &amp;&amp; response.msg) {
-                throw new Error(`[${response.code}] ${response.msg}`);
+                return Error.new(response.code, response.msg);
             }
 
             if (Array.isArray(response)) {
@@ -237,7 +238,7 @@ class BinanceSync {
         try {
             const res = await this.reqHTTP.GET('/fapi/v2/account');
             if (res.code &amp;&amp; res.msg) {
-                throw new Error(`[${res.code}] ${res.msg}`);
+                return Error.new(res.code, res.msg);
             }
 
             return res;
@@ -256,7 +257,7 @@ class BinanceSync {
         try {
             const res = await this.reqHTTP.GET('/fapi/v2/balance');
             if (res.code &amp;&amp; res.msg) {
-                throw new Error(`[${res.code}] ${res.msg}`);
+                return Error.new(res.code, res.msg);
             }
 
             return res;
@@ -291,7 +292,7 @@ class BinanceSync {
             });
 
             if (!Array.isArray(candles)) {
-                return { error: true, code: candles.code, message: candles.msg };
+                return Error.new(candles.code, candles.msg);
             }
 
             return candles.map(candle => new Candlestick({
@@ -307,7 +308,7 @@ class BinanceSync {
                 isCandleClosed: true
             }));
         } catch (err) {
-            throw new Error(err);
+            throw Error.new(err);
         }
     }
 
@@ -331,7 +332,7 @@ class BinanceSync {
             });
 
             if (newOrder.code &amp;&amp; newOrder.msg) {
-                return new Error({ message: `[${newOrder.code}] ${newOrder.msg}` });
+                return Error.new(newOrder.code, newOrder.msg);
             }
 
             return newOrder;
@@ -353,12 +354,72 @@ class BinanceSync {
             const cancelled = await this.reqHTTP.DELETE('/fapi/v1/order', { symbol, origClientOrderId: clientOrderId });
 
             if (cancelled.code &amp;&amp; cancelled.msg) {
-                return new Error(`[${cancelled.code}] ${cancelled.msg}`);
+                return Error.new(cancelled.code, cancelled.msg);
             }
 
             return cancelled;
         } catch (err) {
             return err;
+        }
+    }
+
+    /**
+     * Fetches all futures orders for a given symbol and filter. It takes a symbol and a filter as parameters. The filter is an object that can contain orderId, startTime, endTime, and limit properties.
+     *
+     * If the response from the API contains a code and a message, it returns a new Error with the code and message from the response.
+     *
+     * If an error occurs during the execution of the function, it throws a new Error.Log with the caught error.
+     *
+     * @param {string} symbol - The symbol for which to fetch all futures orders. (Mandatory)
+     * @param {object} filter - An object that can contain orderId, startTime, endTime, and limit properties.
+     * @param {number} filter.orderId - The order ID number
+     * @param {date} filter.startTime - Timestamp of start time.
+     * @param {date} filter.endTime - Timestamp of end time.
+     * @param {number} filter.limit - Maximum number of orders to retreive.
+     * @returns {object} - The futures orders for the given symbol and filter.
+     * @throws {Error} - If an error occurs during the execution of the function.
+     */
+    async futuresAllOrders(symbol, filter) {
+        try {
+            const orders = await this.reqHTTP.GET('/fapi/v1/allOrders', { ...filter, symbol });
+
+            if (orders.code &amp;&amp; orders.message) {
+                return Error.new(orders.code, orders.message);
+            }
+
+            return orders;
+        } catch (err) {
+            throw new Error.Log(err);
+        }
+    }
+
+    /**
+     * Queries a specific futures order for a given symbol and filter. The filter is an object that contains orderId and origClientOrderId properties.
+     *
+     * If the response from the API contains a code and a message, it returns a new Error with the code and message from the response.
+     *
+     * If an error occurs during the execution of the function, it throws a new Error.Log with the caught error.
+     *
+     * @param {string} symbol - The symbol for which to query the futures order.
+     * @param {object} filter - An object that contains orderId and origClientOrderId properties.
+     * @param {number} filter.orderId - A number that contains the orderId for the order.
+     * @param {string} filter.origClientOrderId - A string that contains the origClientOrderId for the order.
+     * @returns {object} - The futures order for the given symbol and filter.
+     * @throws {Error} - If an error occurs during the execution of the function.
+     */
+    async futuresQueryOrder(symbol, filter) {
+        const { orderId, origClientOrderId } = Object(filter);
+
+        try {
+            const order = await this.reqHTTP.GET('/fapi/v1/order', { symbol, orderId, origClientOrderId });
+
+            if (order.code &amp;&amp; order.message) {
+                return Error.new(order.code, order.message);
+            }
+
+            return order;
+        } catch (err) {
+            throw new Error.Log(err);
         }
     }
 
@@ -374,7 +435,7 @@ class BinanceSync {
         try {
             const res = await this.reqHTTP.DELETE('/fapi/v1/batchOrders', { symbol, orderidlist: orderIds });
             if (res.code &amp;&amp; res.msg) {
-                throw new Error(`[${res.code}] ${res.msg}`);
+                return Error.new(res.code, res.msg);
             }
 
             return res;
@@ -394,7 +455,7 @@ class BinanceSync {
         try {
             const res = this.reqHTTP.DELETE('/fapi/v1/allOpenOrders', { symbol });
             if (res.code &amp;&amp; res.msg) {
-                throw new Error(`[${res.code}] ${res.msg}`);
+                throw Error.new(res.code, res.msg);
             }
 
             return res;
@@ -421,7 +482,7 @@ module.exports = BinanceSync;
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Wed Feb 14 2024 16:17:55 GMT-0300 (Horário Padrão de Brasília)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Apr 19 2024 16:36:39 GMT-0300 (Horário Padrão de Brasília)
 </footer>
 
 <script> prettyPrint(); </script>
