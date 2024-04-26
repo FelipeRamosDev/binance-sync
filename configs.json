@@ -5,5 +5,15 @@
     },
     "connections": {
         "streamPingInterval": 2700000
+    },
+    "marketTypes": {
+        "spot": {
+            "exchangeFee": 0.075
+        },
+        "futures": {
+            "marginType": "isolated",
+            "exchangeFee": 0.025,
+            "maxLeverege": 120
+        }
     }
 }
