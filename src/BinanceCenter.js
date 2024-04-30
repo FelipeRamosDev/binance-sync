@@ -1,22 +1,49 @@
-const {Axios}  = require('axios');
-const exchangesConfig  = require('../../../exchange-config.json');
-const AssetData  = require('./models/AssetData');
-const futuresLeverage  = require('../../../futures-leverage.json');
+const fs = require('fs');
+const AJAX = require('./BinanceAJAX');
+const AssetData = require('./models/AssetData');
+const futuresLeverage = require('../futures-leverage.json');
+
+const BINANCE_SYNC_CONFIGS_PROJECT_PATH = '../../../binance-sync.config.json';
+const BINANCE_SYNC_CONFIGS_NATIVE_PATH = '../configs.json';
+let exchangesConfig;
+
+if (fs.existsSync(BINANCE_SYNC_CONFIGS_PROJECT_PATH)) {
+    exchangesConfig = require(BINANCE_SYNC_CONFIGS_PROJECT_PATH);
+} else {
+    exchangesConfig = require(BINANCE_SYNC_CONFIGS_NATIVE_PATH);
+}
 
 /**
  * BinanceCenter class for managing Binance exchange.
  */
 class BinanceCenter {
     /**
-     * Constructs a new BinanceCenter instance.
+     * Constructs a new BinanceCenter instance. If you provide the param `setup.futuresSymbols`, it will not initialize when the method `this.init` wass triggered.
+     * 
+     * @constructor
+     * @param {object} setup - The setup configs for the constructor
+     * @param {object} setup.configs - The Binance configs placed on binance-sync.config.js
+     * @param {AssetData[]} setup.futuresSymbols - The future's assets data.
+     * @param {string} setup.timezone - The server Binance timezone.
+     * @param {Date} setup.serverTime - The server Binance time. (Millis)
      */
-    constructor() {
-        this.configs = exchangesConfig.binance;
-        this.futuresSymbols = [];
-        this.rateLimit = [];
-        this.exchangeFilters = [];
-        this.serverTime;
-        this.timezone = '';
+    constructor(setup) {
+        const {
+            configs = exchangesConfig,
+            futuresSymbols = [],
+            timezone = '',
+            serverTime
+        } = Object(setup);
+
+        this.configs = configs;
+        this.futuresSymbols = futuresSymbols;
+        this.timezone = timezone || '';
+        this.serverTime = serverTime;
+
+        if (this.futuresSymbols.length) {
+            this.futuresSymbols.map(symbol => new AssetData(symbol));
+            this.isReady = true;
+        }
     }
 
     /**
@@ -26,13 +53,14 @@ class BinanceCenter {
      * @throws {Error} If there is an error during initialization.
      */
     async init() {
-        const ajax = new Axios({ baseURL: exchangesConfig.binance.marketTypes.futures.apiFuturesHost });
-        const { data } = await ajax.get('/fapi/v1/exchangeInfo');
-        const parsedData = JSON.parse(data);
+        if (this.isReady) {
+            return this;
+        }
+
+        const ajax = new AJAX(null, null, { baseURL: this.configs.URLS.futuresBase });
+        const parsedData = await ajax.GET('/fapi/v1/exchangeInfo');
 
         this.futuresSymbols = parsedData?.symbols.filter(symbol => symbol.quoteAsset === 'USDT').map(symbol => new AssetData(symbol));
-        this.rateLimits = parsedData?.rateLimits;
-        this.exchangeFilters = parsedData?.exchangeFilters;
         this.serverTime = parsedData?.serverTime;
         this.timezone = parsedData?.timezone;
 
@@ -44,7 +72,8 @@ class BinanceCenter {
             item.minNotional = Number(item.filters.MIN_NOTIONAL.notional)
         });
     
-        return { success: true };
+        this.isReady = true;
+        return this;
     }
 
     /**
@@ -67,7 +96,7 @@ class BinanceCenter {
      */
     getAsset(symbol) {
         const assets = this.getAssetsData([symbol]);
-        return assets.length ? assets[0] : null;
+        return assets.length ? new AssetData(assets[0]) : null;
     }
 
     /**

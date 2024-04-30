@@ -16,7 +16,7 @@ class ChartStream {
      * @param {Object} setup.snapshot - The raw snapshot coming from Binance API.
      */
     constructor(setup) {
-        const { symbol, interval, history, ws } = Object(setup);
+        const { symbol, interval, history, ws, currentStream } = Object(setup);
 
         try {
             /** @property {string} symbol - The symbol for the chart stream. */
@@ -33,6 +33,9 @@ class ChartStream {
 
             /** @property {Object} listeners - Listeners of streams opened. */
             this.listeners = {};
+
+            /** @property {Object} currentStream - The current candlestick streaming. */
+            this.currentStream = currentStream || {};
         } catch (err) {
             throw err;
         }
