@@ -41,6 +41,7 @@ class BinanceCenter {
         this.serverTime = serverTime;
 
         if (this.futuresSymbols.length) {
+            this.futuresSymbols.map(symbol => new AssetData(symbol));
             this.isReady = true;
         }
     }
@@ -95,7 +96,7 @@ class BinanceCenter {
      */
     getAsset(symbol) {
         const assets = this.getAssetsData([symbol]);
-        return assets.length ? assets[0] : null;
+        return assets.length ? new AssetData(assets[0]) : null;
     }
 
     /**
