@@ -220,6 +220,29 @@ class BinanceSync {
     }
 
     /**
+     * To get all user's opened positions on Binance.
+     * @param {string} symbol - If a symbol is provided it will return the symbol's position if it exist, if any position is opened for the symbol it will return undefined.
+     */
+    async futuresOpenedPositions(symbol) {
+        try {
+            const accInfo = await this.futuresAccountInfo();
+
+            if (!accInfo || accInfo.error) {
+                return accInfo;
+            }
+
+            const positionsOpened = accInfo.positions.filter(pos => Number(pos.positionAmt));
+            if (symbol) {
+                return positionsOpened.find(pos => pos.symbol === symbol);
+            }
+
+            return positionsOpened;
+        } catch (err) {
+            throw logError(err);
+        }
+    }
+
+    /**
      * Gets the futures account balance.
      * @async
      * @return {Promise<Object>} The futures account balance.
