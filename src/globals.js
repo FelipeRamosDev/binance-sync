@@ -1,3 +1,12 @@
+const { isClient } = require('./helpers');
+
+// Helpers
+if (isClient()) {
+    window.isClient = isClient;
+} else {
+    global.isClient = isClient;
+}
+
 if (!global.binanceSync) {
     global.binanceSync = {
         charts: {},
