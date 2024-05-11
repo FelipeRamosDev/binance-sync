@@ -1,4 +1,3 @@
-const crypto = require('crypto');
 const BinanceService  = require('./BinanceSync');
 const MarginCall  = require('./models/userDataEvents/MarginCall');
 const AccountUpdate  = require('./models/userDataEvents/AccountUpdate');
@@ -325,6 +324,14 @@ class BinanceStreams {
      * @returns {Object} Object with the listenID (used to close the connection later) and the chart.
      */
     addChartCallbacks(chart, callbacks) {
+        let crypto;
+
+        if (isClient()) {
+            crypto = window.crypto;
+        } else {
+            crypto = require('crypto');
+        }
+
         const listenID = crypto.randomUUID();
         const { open, close, data, error } = Object(callbacks);
 

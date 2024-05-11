@@ -1,14 +1,13 @@
-const WebSocket = require('ws');
 const appConfigs = require('../configs.json');
 
 /**
- * BinanceWS class for managing WebSocket connections on Binance API.
+ * BinanceWSClient class for managing WebSocket connections on Binance API.
  */
-class BinanceWS {
+class BinanceWSClient {
     /**
-     * Constructs a new BinanceWS instance.
+     * Constructs a new BinanceWSClient instance.
      * @param {Object} parentService - The parent service object.
-     * @param {Object} configs - The configuration object for BinanceWS.
+     * @param {Object} configs - The configuration object for BinanceWSClient.
      * @throws {Error} If there is an error during construction.
      */
     constructor(parentService, configs) {
@@ -22,6 +21,7 @@ class BinanceWS {
         }
     }
 
+    
     /**
      * Gets the parent service.
      * @return {Object} The parent service.
@@ -75,7 +75,7 @@ class BinanceWS {
             throw Error.new(err);
         }
     }
-    
+
     /**
      * Subscribes to a WebSocket stream.
      * @async
@@ -102,16 +102,16 @@ class BinanceWS {
                 endpointAppend = `${this.baseURL}/${endpoint || ''}`;
             }
 
-            const ws = new WebSocket(endpointAppend);
+            const ws = new window.WebSocket(endpointAppend);
             ws.listenKey = listenKey;
 
-            ws.on('open', () => {
+            ws.onopen = () => {
                 if (typeof onOpen === 'function') {
                     onOpen(ws);
                 }
-            });
+            };
 
-            ws.on('error', (err) => {
+            ws.onerror = (err) => {
                 if (typeof onError !== 'function') {
                     return;
                 }
@@ -121,19 +121,19 @@ class BinanceWS {
                 } else {
                     onError(err);
                 }
-            });
+            };
 
-            ws.on('message', (input) => {
+            ws.onmessage = (input) => {
                 if (typeof onData === 'function') {
-                    onData(JSON.parse(input));
+                    onData(JSON.parse(input.data));
                 }
-            });
+            };
 
-            ws.on('close', () => {
+            ws.onclose = () => {
                 if (typeof onClose === 'function') {
                     onClose(ws);
                 }
-            });
+            };
 
             return ws;
         } catch (err) {
@@ -142,4 +142,4 @@ class BinanceWS {
     }
 }
 
-module.exports = BinanceWS;
+module.exports = BinanceWSClient;
