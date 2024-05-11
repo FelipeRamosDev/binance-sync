@@ -13,10 +13,11 @@ class ChartStream {
      * @param {string} setup.symbol - The symbol for the chart stream.
      * @param {string} setup.interval - The interval for the chart stream.
      * @param {Array} setup.history - The history data for the chart stream.
-     * @param {Object} setup.snapshot - The raw snapshot coming from Binance API.
+     * @param {WebSocket} setup.ws - The websocket connection.
+     * @param {boolean} setup.accumulateCandles - If set to true, it will accumulate candles on the chart along the time.
      */
     constructor(setup) {
-        const { symbol, interval, history, ws, currentStream } = Object(setup);
+        const { symbol, interval, history, ws, currentStream, accumulateCandles } = Object(setup);
 
         try {
             /** @property {string} symbol - The symbol for the chart stream. */
@@ -27,6 +28,12 @@ class ChartStream {
 
             /** @property {Candlestick[]} history - The history data for the chart stream (Only the past candles). It's ordered from the oldest to the most recent candle. */
             this.history = history.filter(item => item.isCandleClosed);
+
+            /** @property {number} initialLength - The initial history length */
+            this.initialLength = this.history.length;
+
+            /** @property {boolean} accumulateCandles - The history length wil be fixed on the initial length */
+            this.accumulateCandles = Boolean(accumulateCandles);
 
             /** @property {WebSocket} ws - The WebSocket connection. */
             this.ws = ws;
@@ -65,6 +72,15 @@ class ChartStream {
         return this.history[this.history.length - 1];
     }
 
+    toObject() {
+        return {
+            ...this,
+            candles: this.candles,
+            currentPrice: this.currentPrice,
+            lastClosedCandle: this.lastClosedCandle
+        }
+    }
+
     /**
      * Update the snapshot and process the data.
      * @param {Object} snapshot - The raw snapshot data from Binance API.
@@ -90,18 +106,26 @@ class ChartStream {
             quoteVolume: q     // Quote asset volume
         });
 
+        if (!this.accumulateCandles && this.candles.length > this.initialLength) {
+            this.history.shift();
+        }
+
         if (candle.openTime === this.lastClosedCandle.openTime) {
             this.history.pop();
         }
 
-        if (candle?.isCandleClosed) {
-            this.history.shift();
+        if (this.currentStream?.isCandleClosed) {
             this.history.push(candle);
         } else {
             this.currentStream = candle;
         }
 
-        process.emit(this.buildEventName('update'), this);
+        let toSend = this;
+        if (isClient()) {
+            toSend = this.toObject();
+        }
+
+        emitEvent(this.buildEventName('update'), toSend);
     }
 
     /**
@@ -127,7 +151,7 @@ class ChartStream {
             }
 
             if (listenersLength === 1) {
-                process.emit(this.buildEventName('close'), this);
+                emitEvent(this.buildEventName('close'), this);
             }
 
             listeners?.update && process.off(this.buildEventName('update'), listeners?.update);
@@ -171,7 +195,7 @@ class ChartStream {
         }
 
         this.listeners[listenID][evName] = callback;
-        process.on(this.buildEventName(evName), callback);
+        appendEvent(this.buildEventName(evName), ({ detail }) => callback(detail));
 
         return listenID;
     }
