@@ -53,7 +53,12 @@ class ChartStream {
      * @returns {Candlestick[]} - An array of candles.
      */
     get candles() {
-        return [...this.history, this.currentStream].sort((a, b) => b.openTime - a.openTime);
+        if (this.currentStream.isCandleClosed) {
+            return this.history.sort((a, b) => b.openTime - a.openTime);
+        }
+
+        const blended = [...this.history, this.currentStream];
+        return blended.sort((a, b) => b.openTime - a.openTime);
     }
 
     /**
@@ -69,7 +74,24 @@ class ChartStream {
      * @returns {Candlestick} - The last closed candle.
      */
     get lastClosedCandle() {
-        return this.history[this.history.length - 1];
+        let result;
+
+        this.candles.map(item => {
+            if (!item.isCandleClosed) {
+                return;
+            }
+
+            if (!result) {
+                result = item;
+                return;
+            }
+
+            if (item.time > result.time) {
+                result = item;
+            }
+        });
+
+        return result;
     }
 
     toObject() {
@@ -110,22 +132,16 @@ class ChartStream {
             this.history.shift();
         }
 
-        if (candle.openTime === this.lastClosedCandle.openTime) {
+        if (candle.time === this.lastClosedCandle.time) {
             this.history.pop();
         }
 
-        if (this.currentStream?.isCandleClosed) {
+        if (candle?.isCandleClosed) {
             this.history.push(candle);
-        } else {
-            this.currentStream = candle;
         }
 
-        let toSend = this;
-        if (isClient()) {
-            toSend = this.toObject();
-        }
-
-        emitEvent(this.buildEventName('update'), toSend);
+        this.currentStream = candle;
+        emitEvent(this.buildEventName('update'), this.toObject());
     }
 
     /**
