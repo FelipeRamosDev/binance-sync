@@ -1,4 +1,3 @@
-const crypto = require('crypto');
 const BinanceService  = require('./BinanceSync');
 const MarginCall  = require('./models/userDataEvents/MarginCall');
 const AccountUpdate  = require('./models/userDataEvents/AccountUpdate');
@@ -259,7 +258,7 @@ class BinanceStreams {
      * @returns {Promise<Object>} Returns a promise with the listenID (string) and the chart (ChartStream).
      */
     async candlestickChart(symbol, interval, options) {
-        const { callbacks, CustomChartStream } = Object(options);
+        const { callbacks, accumulateCandles, CustomChartStream } = Object(options);
         
         return new Promise(async (resolve, reject) => {
             try {
@@ -281,7 +280,7 @@ class BinanceStreams {
 
                 const ws = await this.currentCandle(symbol, interval, {
                     open: () => {
-                        const chart = new Chart({ symbol, interval, history });
+                        const chart = new Chart({ symbol, interval, history, accumulateCandles });
                         this.parentService.setBuffChart(chart, ws, symbol, interval);
 
                         resolve(this.addChartCallbacks(chart, callbacks));
@@ -290,7 +289,7 @@ class BinanceStreams {
                         const chart = this.parentService.getBuffChart(symbol, interval);
 
                         if (chart) {
-                            process.emit(chart.buildEventName('close'), chart);
+                            emitEvent(chart.buildEventName('close'), chart);
                         }
                     },
                     data: (snapshot) => {
@@ -304,7 +303,7 @@ class BinanceStreams {
                         const chart = this.parentService.getBuffChart(symbol, interval);
 
                         if (chart) {
-                            process.emit(chart.buildEventName('error'), err);
+                            emitEvent(chart.buildEventName('error'), err);
                         }
                     }
                 });
@@ -325,6 +324,14 @@ class BinanceStreams {
      * @returns {Object} Object with the listenID (used to close the connection later) and the chart.
      */
     addChartCallbacks(chart, callbacks) {
+        let crypto;
+
+        if (isClient()) {
+            crypto = window.crypto;
+        } else {
+            crypto = require('crypto');
+        }
+
         const listenID = crypto.randomUUID();
         const { open, close, data, error } = Object(callbacks);
 
