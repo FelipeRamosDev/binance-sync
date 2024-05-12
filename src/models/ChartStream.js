@@ -13,10 +13,11 @@ class ChartStream {
      * @param {string} setup.symbol - The symbol for the chart stream.
      * @param {string} setup.interval - The interval for the chart stream.
      * @param {Array} setup.history - The history data for the chart stream.
-     * @param {Object} setup.snapshot - The raw snapshot coming from Binance API.
+     * @param {WebSocket} setup.ws - The websocket connection.
+     * @param {boolean} setup.accumulateCandles - If set to true, it will accumulate candles on the chart along the time.
      */
     constructor(setup) {
-        const { symbol, interval, history, ws, currentStream } = Object(setup);
+        const { symbol, interval, history, ws, currentStream, accumulateCandles } = Object(setup);
 
         try {
             /** @property {string} symbol - The symbol for the chart stream. */
@@ -27,6 +28,12 @@ class ChartStream {
 
             /** @property {Candlestick[]} history - The history data for the chart stream (Only the past candles). It's ordered from the oldest to the most recent candle. */
             this.history = history.filter(item => item.isCandleClosed);
+
+            /** @property {number} initialLength - The initial history length */
+            this.initialLength = this.history.length;
+
+            /** @property {boolean} accumulateCandles - The history length wil be fixed on the initial length */
+            this.accumulateCandles = Boolean(accumulateCandles);
 
             /** @property {WebSocket} ws - The WebSocket connection. */
             this.ws = ws;
@@ -46,7 +53,12 @@ class ChartStream {
      * @returns {Candlestick[]} - An array of candles.
      */
     get candles() {
-        return [...this.history, this.currentStream].sort((a, b) => b.openTime - a.openTime);
+        if (this.currentStream.isCandleClosed) {
+            return this.history.sort((a, b) => b.openTime - a.openTime);
+        }
+
+        const blended = [...this.history, this.currentStream];
+        return blended.sort((a, b) => b.openTime - a.openTime);
     }
 
     /**
@@ -62,7 +74,33 @@ class ChartStream {
      * @returns {Candlestick} - The last closed candle.
      */
     get lastClosedCandle() {
-        return this.history[this.history.length - 1];
+        let result;
+
+        this.candles.map(item => {
+            if (!item.isCandleClosed) {
+                return;
+            }
+
+            if (!result) {
+                result = item;
+                return;
+            }
+
+            if (item.time > result.time) {
+                result = item;
+            }
+        });
+
+        return result;
+    }
+
+    toObject() {
+        return {
+            ...this,
+            candles: this.candles,
+            currentPrice: this.currentPrice,
+            lastClosedCandle: this.lastClosedCandle
+        }
     }
 
     /**
@@ -90,18 +128,20 @@ class ChartStream {
             quoteVolume: q     // Quote asset volume
         });
 
-        if (candle.openTime === this.lastClosedCandle.openTime) {
+        if (!this.accumulateCandles && this.candles.length > this.initialLength) {
+            this.history.shift();
+        }
+
+        if (candle.time === this.lastClosedCandle.time) {
             this.history.pop();
         }
 
         if (candle?.isCandleClosed) {
-            this.history.shift();
             this.history.push(candle);
-        } else {
-            this.currentStream = candle;
         }
 
-        process.emit(this.buildEventName('update'), this);
+        this.currentStream = candle;
+        emitEvent(this.buildEventName('update'), this.toObject());
     }
 
     /**
@@ -127,7 +167,7 @@ class ChartStream {
             }
 
             if (listenersLength === 1) {
-                process.emit(this.buildEventName('close'), this);
+                emitEvent(this.buildEventName('close'), this);
             }
 
             listeners?.update && process.off(this.buildEventName('update'), listeners?.update);
@@ -171,7 +211,7 @@ class ChartStream {
         }
 
         this.listeners[listenID][evName] = callback;
-        process.on(this.buildEventName(evName), callback);
+        appendEvent(this.buildEventName(evName), ({ detail }) => callback(detail));
 
         return listenID;
     }

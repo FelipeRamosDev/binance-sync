@@ -1,7 +1,6 @@
 require('./globals');
 
 const AJAX  = require('./BinanceAJAX');
-const BinanceWS  = require('./BinanceWS');
 const ChartStream = require('./models/ChartStream');
 
 /**
@@ -26,10 +25,19 @@ class BinanceSync {
              */
             this.reqHTTP = new AJAX(this.API_KEY, this.SECRET_KEY);
 
-            /**
-             * @member {BinanceWS}
-             */
-            this.webSocket = new BinanceWS(this);
+            if (isClient()) {
+                const BinanceWSClient = require('./BinanceWSClient');
+                /**
+                 * @member {BinanceWSClient}
+                 */
+                this.webSocket = new BinanceWSClient(this);
+            } else {
+                const BinanceWS = require('./BinanceWS');
+                /**
+                 * @member {BinanceWS}
+                 */
+                this.webSocket = new BinanceWS(this);
+            }
         } catch (err) {
             throw err;
         }

@@ -1,6 +1,5 @@
 const BinanceAJAX  = require('./src/BinanceAJAX');
 const BinanceStreams  = require('./src/BinanceStreams');
-const BinanceWS  = require('./src/BinanceWS');
 const BinanceSync  = require('./src/BinanceSync');
 
 /**
@@ -15,11 +14,21 @@ BinanceSync.BinanceAJAX = BinanceAJAX;
  */
 BinanceSync.BinanceStreams = BinanceStreams;
 
-/**
- * BinanceWS is a class for managing WebSocket connections on Binance API.
- * @type {BinanceWS}
- */
-BinanceSync.BinanceWS = BinanceWS;
+if (!isClient()) {
+    const BinanceWS  = require('./src/BinanceWS');
+    /**
+     * BinanceWS is a class for managing WebSocket connections on Binance API.
+     * @type {BinanceWS}
+     */
+    BinanceSync.BinanceWS = BinanceWS;
+} else {
+    const BinanceWSClient  = require('./src/BinanceWSClient');
+    /**
+     * BinanceWS is a class for managing WebSocket connections on Binance API.
+     * @type {BinanceWSClient}
+     */
+    BinanceSync.BinanceWS = BinanceWSClient;
+}
 
 /**
  * BinanceSync is a class for synchronizing with Binance API.

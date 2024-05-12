@@ -36,6 +36,7 @@ class Candlestick {
             this.symbol = symbol;
             this.interval = interval;
             this.openTime = formatDate ? new Date(openTime) : openTime;
+            this.time = this.openTime;
             this.closeTime = formatDate ? new Date(closeTime) : closeTime;
             this.currentTime = formatDate ? new Date() : Date.now();
             this.open = Number(open);
