@@ -40,6 +40,29 @@ class BinanceAJAX extends Axios {
         return this._API_SECRET();
     }
 
+    generateSignature(queryString) {
+        if (this.apiKey && this.apiSecret) {
+            const signature = _crypto.createHmac('sha256', this.apiSecret);
+
+            if (queryString?.toString) {
+                signature.update(queryString.toString());
+            }
+
+            return signature.digest('hex');
+        }
+    }
+
+    async getServerTime() {
+        try {
+            const { data } = await this.get('/fapi/v1/time');
+            const { serverTime } = JSON.parse(data);
+
+            return serverTime;
+        } catch (err) {
+            throw err;
+        }
+    }
+
     /**
      * Parses the URL for the request.
      * @param {string} endpoint - The endpoint for the request.
@@ -51,8 +74,7 @@ class BinanceAJAX extends Axios {
         const queryString = new URLSearchParams('');
 
         try {
-            const { data } = await this.get('/fapi/v1/time');
-            const { serverTime } = JSON.parse(data);
+            const serverTime = await this.getServerTime();
 
             queryString.set('recvWindow', 60000);
             queryString.set('timestamp', serverTime);
@@ -60,11 +82,14 @@ class BinanceAJAX extends Axios {
             Object.keys(Object(params)).map(key => queryString.set(key, params[key]));
     
             if (this.apiKey && this.apiSecret) {
-                const signature = _crypto.createHmac('sha256', this.apiSecret).update(queryString.toString()).digest('hex');
-                queryString.set('signature', signature);
+                queryString.set('signature', this.generateSignature(queryString));
             }
             
-            return endpoint + '?' + queryString.toString();
+            if (endpoint) {
+                return endpoint + '?' + queryString.toString();
+            } else {
+                return queryString.toString();
+            }
         } catch (err) {
             throw err;
         }
