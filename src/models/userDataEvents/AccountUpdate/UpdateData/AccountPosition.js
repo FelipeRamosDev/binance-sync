@@ -89,6 +89,10 @@ class AccountPosition {
             throw err;
         }
     }
+
+    get quantity() {
+        return Math.abs(this.positionAmount);
+    }
 }
 
 module.exports = AccountPosition;
