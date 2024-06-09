@@ -195,6 +195,10 @@ class BinanceStreams {
             const userStreamCache = this.getUserDataStream(userStreamID);
 
             if (Object.keys(closed).length) {
+                if (closed.code === -1125) {
+                    return closed;
+                }
+
                 throw closed;
             }
 
