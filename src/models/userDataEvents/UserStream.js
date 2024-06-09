@@ -57,7 +57,6 @@ class UserStream {
     deleteStream() {
         delete binanceSync.userDataStream[this.id];
     }
-
 }
 
 module.exports = UserStream;
