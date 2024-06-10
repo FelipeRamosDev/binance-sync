@@ -1,5 +1,8 @@
-class AccountInfoPosition {
+const UserDataPositionBase = require('./userDataEvents/UserDataPositionBase');
+
+class AccountInfoPosition extends UserDataPositionBase {
     constructor(setup) {
+        super(setup);
         const {
             isolated,
             positionSide,
@@ -14,28 +17,26 @@ class AccountInfoPosition {
             maintMargin,
             notional,
             openOrderInitialMargin,
-            positionAmt,
             positionInitialMargin,
             unrealizedProifit
         } = Object(setup);
 
+        this.type = 'AccountInfoPosition';
         this.isolated = isolated;
         this.positionSide = positionSide;
         this.symbol = symbol;
         this.updateTime = updateTime;
-        this.askNotional = Number(askNotional);
-        this.breakEvenPrice = Number(breakEvenPrice);
-        this.entryPrice = Number(entryPrice);
-        this.initialMargin = Number(initialMargin);
-        this.isolatedWallet = Number(isolatedWallet);
-        this.leverage = Number(leverage);
-        this.maintMargin = Number(maintMargin);
-        this.notional = Number(notional);
-        this.openOrderInitialMargin = Number(openOrderInitialMargin);
-        this.positionAmt = Number(positionAmt);
-        this.quantity = Math.abs(this.positionAmt);
-        this.positionInitialMargin = Number(positionInitialMargin);
-        this.unrealizedProifit = Number(unrealizedProifit);
+        this.askNotional = parseNum(askNotional);
+        this.breakEvenPrice = parseNum(breakEvenPrice);
+        this.entryPrice = parseNum(entryPrice);
+        this.initialMargin = parseNum(initialMargin);
+        this.isolatedWallet = parseNum(isolatedWallet);
+        this.leverage = parseNum(leverage);
+        this.maintMargin = parseNum(maintMargin);
+        this.notional = parseNum(notional);
+        this.openOrderInitialMargin = parseNum(openOrderInitialMargin);
+        this.positionInitialMargin = parseNum(positionInitialMargin);
+        this.unrealizedProifit = parseNum(unrealizedProifit);
     }
 }
 
