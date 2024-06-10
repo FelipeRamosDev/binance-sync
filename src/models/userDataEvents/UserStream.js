@@ -33,6 +33,10 @@ class UserStream {
         return this._streams();
     }
 
+    get binanceService() {
+        return this.streams.parentService;
+    }
+
     get listenKey() {
         return this.ws?.listenKey;
     }
@@ -43,8 +47,15 @@ class UserStream {
 
     appendWS(WS) {
         this.ws = WS;
-        
+        this.addSocketRequestListener();
+    }
+
+    addSocketRequestListener() {
         this.ws.on('message', (data) => {
+            if (!this.requestCallbacks?.size) {
+                return;
+            }
+
             const toString = data.toString();
             const dataObj = JSON.parse(toString);
 
@@ -70,7 +81,7 @@ class UserStream {
         this.requestCallbacks.delete(id);
     }
 
-    loadPositions(callback) {
+    socketRequest(callback) {
         const payloadID = crypto.randomBytes(8).toString('hex');
         const payload = JSON.stringify({
             id: payloadID,
@@ -79,7 +90,34 @@ class UserStream {
         });
 
         this.ws.send(payload);
-        this.setCallback(payloadID, (data) => {
+        this.setCallback(payloadID, callback);
+
+        return {
+            payloadID,
+            payload
+        };
+    }
+
+    async loadPositions() {
+        try {
+            const accountInfo = await this.binanceService.futuresAccountInfo();
+
+            if (!accountInfo || accountInfo.error) {
+                throw logError(accountInfo);
+            }
+
+            if (Array.isArray(accountInfo.positions)) {
+                return accountInfo.positions;
+            }
+
+            return [];
+        } catch (err) {
+            throw logError(err);
+        }
+    }
+
+    requestPositions(callback) {
+        const response = this.socketRequest((data) => {
             if (!Array.isArray(data) || !data.length) {
                 return this.reloadPositions(callback);
             }
@@ -98,10 +136,7 @@ class UserStream {
             });
         });
 
-        return {
-            id: payloadID,
-            payload
-        };
+        return response;
     }
 
     reloadPositions(callback) {
@@ -112,7 +147,7 @@ class UserStream {
 
         return callback(toError({
             name: 'SOCKET_POSITIONS_LOAD',
-            message: `The positions wasn't loaded by UserStream socket request!`
+            message: `The UserStream tried to get the positions on Binance side for 3 attemps, but something went wrong!`
         }));
     }
 

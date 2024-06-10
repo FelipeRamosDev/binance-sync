@@ -84,9 +84,10 @@ class BinanceStreams {
         }
 
         try {
-            const ws = await this.parentService.webSocket.subscribe({
+            await this.parentService.webSocket.subscribe({
                 onError,
-                onOpen: () => {
+                onOpen: (webSocket) => {
+                    newUserStream.appendWS(webSocket);
                     this.setUserDataStream(newUserStream);
 
                     if (typeof onOpen === 'function') {
@@ -141,7 +142,6 @@ class BinanceStreams {
                 }
             });
 
-            newUserStream.appendWS(ws);
             return newUserStream;
         } catch (err) {
             throw err;
