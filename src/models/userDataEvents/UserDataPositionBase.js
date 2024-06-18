@@ -15,7 +15,11 @@ class UserDataPositionBase {
     }
 
     isQtyMatch(position) {
-        return Boolean(position?.quantity === this.quantity);
+        if (typeof position === 'object') {
+            return Boolean(position?.quantity === this.quantity);
+        } else if (typeof position === 'number') {
+            return Boolean(position === this.quantity);
+        }
     }
 }
 

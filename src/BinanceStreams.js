@@ -158,7 +158,7 @@ class BinanceStreams {
                 this.userDataKeepAlivePing();
             }, appConfigs.connections.streamPingInterval);
         } catch (err) {
-            throw new Error.Log(err);
+            throw Error.new(err);
         }
     }
 
@@ -177,7 +177,7 @@ class BinanceStreams {
 
             return pong;
         } catch (err) {
-            throw new Error.Log(err);
+            throw Error.new(err);
         }
     }
 
