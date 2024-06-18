@@ -1,6 +1,6 @@
-const { Axios }  = require('axios');
-const _crypto  = require('crypto');
-const appConfigs  = require('../configs.json');
+const { Axios } = require('axios');
+const _crypto = require('crypto');
+const appConfigs = require('../configs.json');
 
 /**
  * BinanceAJAX class for managing AJAX requests to Binance.
@@ -40,6 +40,11 @@ class BinanceAJAX extends Axios {
         return this._API_SECRET();
     }
 
+    /**
+     * Generates a signature for a query string using the API secret.
+     * @param {string} queryString - The query string to sign.
+     * @returns {string} The generated signature in hexadecimal format.
+     */
     generateSignature(queryString) {
         if (this.apiKey && this.apiSecret) {
             const signature = _crypto.createHmac('sha256', this.apiSecret);
@@ -52,6 +57,12 @@ class BinanceAJAX extends Axios {
         }
     }
 
+    /**
+     * Retrieves the server time from Binance.
+     * @async
+     * @returns {Promise<number>} The server time in milliseconds.
+     * @throws {Error} If there is an error during the request.
+     */
     async getServerTime() {
         try {
             const { data } = await this.get('/fapi/v1/time');
@@ -78,13 +89,13 @@ class BinanceAJAX extends Axios {
 
             queryString.set('recvWindow', 60000);
             queryString.set('timestamp', serverTime);
-    
+
             Object.keys(Object(params)).map(key => queryString.set(key, params[key]));
-    
+
             if (this.apiKey && this.apiSecret) {
                 queryString.set('signature', this.generateSignature(queryString));
             }
-            
+
             if (endpoint) {
                 return endpoint + '?' + queryString.toString();
             } else {
