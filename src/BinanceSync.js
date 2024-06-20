@@ -4,6 +4,7 @@ const AccountTrade = require('./models/AccountTrade');
 const AJAX  = require('./BinanceAJAX');
 const ChartStream = require('./models/ChartStream');
 const AccountInfoPosition = require('./models/AccountInfoPosition');
+const FuturesOrder = require('binance-sync/src/models/FuturesOrder');
 
 /**
  * @class
@@ -391,7 +392,7 @@ class BinanceSync {
      * @param {date} filter.startTime - Timestamp of start time.
      * @param {date} filter.endTime - Timestamp of end time.
      * @param {number} filter.limit - Maximum number of orders to retreive.
-     * @returns {object} - The futures orders for the given symbol and filter.
+     * @returns {FuturesOrder[]} And array of FuturesOrder
      * @throws {Error} - If an error occurs during the execution of the function.
      */
     async futuresAllOrders(symbol, filter) {
@@ -402,7 +403,61 @@ class BinanceSync {
                 return Error.new(orders.code, orders.message);
             }
 
-            return orders;
+            return orders.map(order => new FuturesOrder(order));
+        } catch (err) {
+            throw Error.new(err);
+        }
+    }
+
+    /**
+     * Get all open orders on a symbol.
+     * Weight: 1 for a single symbol; 40 when the symbol parameter is omitted
+     * @param {string} symbol - The symbol to get. 
+     * @returns {FuturesOrder[]} And array of FuturesOrder
+     */
+    async futuresCurrentAllOpenOrders(symbol) {
+        try {
+            const openOrders = await this.reqHTTP.GET('/fapi/v1/openOrders', { symbol });
+            
+            if (openOrders.code && openOrders.msg) {
+                return Error.new(openOrders.code, openOrders.msg);
+            }
+
+            return openOrders.map(order => new FuturesOrder(order));
+        } catch (err) {
+            throw Error.new(err);
+        }
+    }
+
+    /**
+     * Query open order
+     * Weight: 1
+     * @param {string} symbol - The symbol to get.
+     * @param {object} params - The optional params to use.
+     * @param {string} params.orderId - The order id to get.
+     * @param {string} params.origClientOrderId - The original order id to get
+     * @returns {FuturesOrder[]} And array of FuturesOrder
+     */
+    async futuresQueryCurrentOpenOrder(symbol, params) {
+        try {
+            if (!symbol) {
+                throw Error.new('MISSING_PARAM', 'The param "symbol" is required!');
+            }
+
+            const openOrder = await this.reqHTTP.GET('/fapi/v1/openOrder', {
+                ...Object(params),
+                symbol
+            });
+
+            if (openOrder.code && openOrder.message) {
+                if (openOrder.message === 'Order does not exist') {
+                    return;
+                }
+
+                return Error.new(openOrder.code, openOrder.message);
+            }
+
+            return new FuturesOrder(openOrder);
         } catch (err) {
             throw Error.new(err);
         }
