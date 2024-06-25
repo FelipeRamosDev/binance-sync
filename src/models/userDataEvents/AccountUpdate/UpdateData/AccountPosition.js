@@ -1,8 +1,10 @@
+const UserDataPositionBase = require('../../UserDataPositionBase');
+
 /**
  * Represents a position in an account.
  * @class AccountPosition
  */
-class AccountPosition {
+class AccountPosition extends UserDataPositionBase {
     /**
      * Creates an instance of AccountPosition.
      * @param {Object} setup - The setup object containing account position properties.
@@ -30,7 +32,9 @@ class AccountPosition {
                 iw,
                 ps
             } = Object(setup);
+            super({ ...setup, positionAmt: pa });
 
+            this.type = 'AccountPosition';
             /**
              * The symbol associated with the position.
              * @member {string}

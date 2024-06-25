@@ -84,9 +84,10 @@ class BinanceStreams {
         }
 
         try {
-            const ws = await this.parentService.webSocket.subscribe({
+            await this.parentService.webSocket.subscribe({
                 onError,
-                onOpen: () => {
+                onOpen: (webSocket) => {
+                    newUserStream.appendWS(webSocket);
                     this.setUserDataStream(newUserStream);
 
                     if (typeof onOpen === 'function') {
@@ -141,7 +142,6 @@ class BinanceStreams {
                 }
             });
 
-            newUserStream.appendWS(ws);
             return newUserStream;
         } catch (err) {
             throw err;
@@ -158,7 +158,7 @@ class BinanceStreams {
                 this.userDataKeepAlivePing();
             }, appConfigs.connections.streamPingInterval);
         } catch (err) {
-            throw new Error.Log(err);
+            throw Error.new(err);
         }
     }
 
@@ -177,7 +177,7 @@ class BinanceStreams {
 
             return pong;
         } catch (err) {
-            throw new Error.Log(err);
+            throw Error.new(err);
         }
     }
 
@@ -195,6 +195,10 @@ class BinanceStreams {
             const userStreamCache = this.getUserDataStream(userStreamID);
 
             if (Object.keys(closed).length) {
+                if (closed.code === -1125) {
+                    return closed;
+                }
+
                 throw closed;
             }
 
