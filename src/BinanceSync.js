@@ -1,7 +1,10 @@
 require('./globals');
 
+const AccountTrade = require('./models/AccountTrade');
 const AJAX  = require('./BinanceAJAX');
 const ChartStream = require('./models/ChartStream');
+const AccountInfoPosition = require('./models/AccountInfoPosition');
+const FuturesOrder = require('binance-sync/src/models/FuturesOrder');
 
 /**
  * @class
@@ -214,14 +217,24 @@ class BinanceSync {
      * @return {Promise<Object>} The futures account information.
      * @throws {Error} If there is an error during the request.
      */
-    async futuresAccountInfo() {
+    async futuresAccountInfo(options) {
+        const { onlyOpenedPositions } = Object(options);
+
         try {
-            const res = await this.reqHTTP.GET('/fapi/v2/account');
-            if (res.code && res.msg) {
-                return Error.new(res.code, res.msg);
+            const accountInfo = await this.reqHTTP.GET('/fapi/v2/account');
+            if (accountInfo.code && accountInfo.msg) {
+                return Error.new(accountInfo.code, accountInfo.msg);
+            }
+            
+            let positions;
+            if (onlyOpenedPositions) {
+                positions = accountInfo.positions.filter(item => Number(item.positionAmt));
+            } else {    
+                positions = accountInfo.positions;
             }
 
-            return res;
+            accountInfo.positions = positions.map(item => new AccountInfoPosition(item));
+            return accountInfo;
         } catch (err) {
             throw err;
         }
@@ -379,7 +392,7 @@ class BinanceSync {
      * @param {date} filter.startTime - Timestamp of start time.
      * @param {date} filter.endTime - Timestamp of end time.
      * @param {number} filter.limit - Maximum number of orders to retreive.
-     * @returns {object} - The futures orders for the given symbol and filter.
+     * @returns {FuturesOrder[]} And array of FuturesOrder
      * @throws {Error} - If an error occurs during the execution of the function.
      */
     async futuresAllOrders(symbol, filter) {
@@ -390,9 +403,92 @@ class BinanceSync {
                 return Error.new(orders.code, orders.message);
             }
 
-            return orders;
+            return orders.map(order => new FuturesOrder(order));
         } catch (err) {
-            throw new Error.Log(err);
+            throw Error.new(err);
+        }
+    }
+
+    /**
+     * Get all open orders on a symbol.
+     * Weight: 1 for a single symbol; 40 when the symbol parameter is omitted
+     * @param {string} symbol - The symbol to get. 
+     * @returns {FuturesOrder[]} And array of FuturesOrder
+     */
+    async futuresCurrentAllOpenOrders(symbol) {
+        try {
+            const openOrders = await this.reqHTTP.GET('/fapi/v1/openOrders', { symbol });
+            
+            if (openOrders.code && openOrders.msg) {
+                return Error.new(openOrders.code, openOrders.msg);
+            }
+
+            return openOrders.map(order => new FuturesOrder(order));
+        } catch (err) {
+            throw Error.new(err);
+        }
+    }
+
+    /**
+     * Query open order
+     * Weight: 1
+     * @param {string} symbol - The symbol to get.
+     * @param {object} params - The optional params to use.
+     * @param {string} params.orderId - The order id to get.
+     * @param {string} params.origClientOrderId - The original order id to get
+     * @returns {FuturesOrder[]} And array of FuturesOrder
+     */
+    async futuresQueryCurrentOpenOrder(symbol, params) {
+        try {
+            if (!symbol) {
+                throw Error.new('MISSING_PARAM', 'The param "symbol" is required!');
+            }
+
+            const openOrder = await this.reqHTTP.GET('/fapi/v1/openOrder', {
+                ...Object(params),
+                symbol
+            });
+
+            if (openOrder.code && openOrder.message) {
+                if (openOrder.message === 'Order does not exist') {
+                    return;
+                }
+
+                return Error.new(openOrder.code, openOrder.message);
+            }
+
+            return new FuturesOrder(openOrder);
+        } catch (err) {
+            throw Error.new(err);
+        }
+    }
+
+    /**
+     * 
+     * @param {object} params - Params for the request.
+     * @param {string} params.symbol - The symbol to search trades.
+     * @param {number} params.orderId - The order id on Binance. This can only be used in combination with `symbol`.
+     * @param {Date} params.startTime - Timestamp for the start time to query the trades.
+     * @param {Date} params.endTime - Timestamp for the end time to query the trades.
+     * @param {number} params.fromId - Trade id to fetch from. Default gets most recent trades.
+     * @param {number} params.limit - The limit of trades to search. Default 500; max 1000.
+     */
+    async futuresAccountTradeList(symbol, params) {
+        if (!symbol) {
+            throw Error.new('PARAM_REQUIRED', `The param "symbol" is required!`);
+        }
+
+
+        try {
+            const trades = await this.reqHTTP.GET('/fapi/v1/userTrades', params);
+
+            if (trades?.code) {
+                return Error.new(trades?.code, trades?.msg);
+            }
+
+            return trades.map(trade => new AccountTrade(trade));
+        } catch (err) {
+            throw Error.new(err);
         }
     }
 

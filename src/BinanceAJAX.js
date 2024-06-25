@@ -1,6 +1,6 @@
-const { Axios }  = require('axios');
-const _crypto  = require('crypto');
-const appConfigs  = require('../configs.json');
+const { Axios } = require('axios');
+const _crypto = require('crypto');
+const appConfigs = require('../configs.json');
 
 /**
  * BinanceAJAX class for managing AJAX requests to Binance.
@@ -41,6 +41,40 @@ class BinanceAJAX extends Axios {
     }
 
     /**
+     * Generates a signature for a query string using the API secret.
+     * @param {string} queryString - The query string to sign.
+     * @returns {string} The generated signature in hexadecimal format.
+     */
+    generateSignature(queryString) {
+        if (this.apiKey && this.apiSecret) {
+            const signature = _crypto.createHmac('sha256', this.apiSecret);
+
+            if (queryString?.toString) {
+                signature.update(queryString.toString());
+            }
+
+            return signature.digest('hex');
+        }
+    }
+
+    /**
+     * Retrieves the server time from Binance.
+     * @async
+     * @returns {Promise<number>} The server time in milliseconds.
+     * @throws {Error} If there is an error during the request.
+     */
+    async getServerTime() {
+        try {
+            const { data } = await this.get('/fapi/v1/time');
+            const { serverTime } = JSON.parse(data);
+
+            return serverTime;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    /**
      * Parses the URL for the request.
      * @param {string} endpoint - The endpoint for the request.
      * @param {Object} params - The parameters for the request.
@@ -51,20 +85,22 @@ class BinanceAJAX extends Axios {
         const queryString = new URLSearchParams('');
 
         try {
-            const { data } = await this.get('/fapi/v1/time');
-            const { serverTime } = JSON.parse(data);
+            const serverTime = await this.getServerTime();
 
             queryString.set('recvWindow', 60000);
             queryString.set('timestamp', serverTime);
-    
+
             Object.keys(Object(params)).map(key => queryString.set(key, params[key]));
-    
+
             if (this.apiKey && this.apiSecret) {
-                const signature = _crypto.createHmac('sha256', this.apiSecret).update(queryString.toString()).digest('hex');
-                queryString.set('signature', signature);
+                queryString.set('signature', this.generateSignature(queryString));
             }
-            
-            return endpoint + '?' + queryString.toString();
+
+            if (endpoint) {
+                return endpoint + '?' + queryString.toString();
+            } else {
+                return queryString.toString();
+            }
         } catch (err) {
             throw err;
         }
