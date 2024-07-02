@@ -17,35 +17,39 @@ class ChartStream {
      * @param {boolean} setup.accumulateCandles - If set to true, it will accumulate candles on the chart along the time.
      */
     constructor(setup) {
-        const { symbol, interval, history, ws, currentStream, accumulateCandles } = Object(setup);
+        const { symbol, interval, limit, history = [], ws, currentStream, accumulateCandles } = Object(setup);
 
-        try {
-            /** @property {string} symbol - The symbol for the chart stream. */
-            this.symbol = symbol;
+        /** @property {string} symbol - The symbol for the chart stream. */
+        this.symbol = symbol;
 
-            /** @property {string} interval - The interval for the chart stream. */
-            this.interval = interval;
+        /** @property {string} interval - The interval for the chart stream. */
+        this.interval = interval;
 
-            /** @property {Candlestick[]} history - The history data for the chart stream (Only the past candles). It's ordered from the oldest to the most recent candle. */
-            this.history = history.filter(item => item.isCandleClosed);
+        /** @property {string} limit - The limit defined for the chart. */
+        this.limit = limit;
 
-            /** @property {number} initialLength - The initial history length */
-            this.initialLength = this.history.length;
+        /** @property {Candlestick[]} history - The history data for the chart stream (Only the past candles). It's ordered from the oldest to the most recent candle. */
+        this.history = history.filter(item => item.isCandleClosed);
 
-            /** @property {boolean} accumulateCandles - The history length wil be fixed on the initial length */
-            this.accumulateCandles = Boolean(accumulateCandles);
+        /** @property {number} initialLength - The initial history length */
+        this.initialLength = this.history.length;
 
-            /** @property {WebSocket} ws - The WebSocket connection. */
-            this.ws = ws;
+        /** @property {boolean} accumulateCandles - The history length wil be fixed on the initial length */
+        this.accumulateCandles = Boolean(accumulateCandles);
 
-            /** @property {Object} listeners - Listeners of streams opened. */
-            this.listeners = {};
+        /** @property {WebSocket} ws - The WebSocket connection. */
+        this.ws = ws;
 
-            /** @property {Object} currentStream - The current candlestick streaming. */
-            this.currentStream = currentStream || {};
-        } catch (err) {
-            throw err;
-        }
+        /** @property {Object} listeners - Listeners of streams opened. */
+        this.listeners = {};
+
+        /** @property {Object} currentStream - The current candlestick streaming. */
+        this.currentStream = currentStream || {};
+
+        /** @property {Map} _candles - The map that stores the candles. */
+        this._candles = new Map();
+
+        history.map(candle => this.setCandle(candle));
     }
 
     /**
@@ -53,12 +57,7 @@ class ChartStream {
      * @returns {Candlestick[]} - An array of candles.
      */
     get candles() {
-        if (this.currentStream.isCandleClosed) {
-            return this.history.sort((a, b) => b.openTime - a.openTime);
-        }
-
-        const blended = [...this.history, this.currentStream];
-        return blended.sort((a, b) => b.openTime - a.openTime);
+        return this.toArray(false, true);
     }
 
     /**
@@ -74,22 +73,39 @@ class ChartStream {
      * @returns {Candlestick} - The last closed candle.
      */
     get lastClosedCandle() {
-        let result;
+        const allClosed = this.toArray({ isCandleClosed: true }, true);
 
-        this.candles.map(item => {
-            if (!item.isCandleClosed) {
-                return;
+        if (allClosed.length) {
+            return allClosed[0];
+        }
+    }
+
+    setCandle(candle) {
+        if (candle instanceof Candlestick) {
+            this._candles.set(candle.openTime, candle);
+        }
+    }
+
+    deleteCandle(key) {
+        this._candles.delete(key);
+    }
+
+    toArray(filter, toRecentFirst) {
+        const result = [];
+
+        this._candles.forEach(candle => {
+            if (!filter || !Object.keys(filter).length) {
+                return result.push(candle);
             }
 
-            if (!result) {
-                result = item;
-                return;
-            }
-
-            if (item.time > result.time) {
-                result = item;
+            if (Object.keys(filter).every(key => candle[key] === filter[key])) {
+                result.push(candle);
             }
         });
+
+        if (toRecentFirst) {
+            return result.sort((prev, curr) => curr.openTime - prev.openTime);
+        }
 
         return result;
     }
@@ -100,6 +116,15 @@ class ChartStream {
             candles: this.candles,
             currentPrice: this.currentPrice,
             lastClosedCandle: this.lastClosedCandle
+        }
+    }
+
+    getOldestCandle() {
+        const history = this.toArray({ isCandleClosed: true });
+
+        if (history.length) {
+            const oldest = history[0];
+            return oldest;
         }
     }
 
@@ -128,19 +153,16 @@ class ChartStream {
             quoteVolume: q     // Quote asset volume
         });
 
-        if (!this.accumulateCandles && this.candles.length > this.initialLength) {
-            this.history.shift();
-        }
-
-        if (candle.time === this.lastClosedCandle.time) {
-            this.history.pop();
-        }
-
-        if (candle?.isCandleClosed) {
-            this.history.push(candle);
-        }
-
+        this.setCandle(candle);
         this.currentStream = candle;
+
+        if (this._candles.size > this.limit) {
+            const oldest = this.getOldestCandle();
+            if (oldest) {
+                this.deleteCandle(oldest.openTime);
+            }
+        }
+
         emitEvent(this.buildEventName('update'), this.toObject());
     }
 
