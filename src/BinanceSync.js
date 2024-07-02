@@ -4,7 +4,7 @@ const AccountTrade = require('./models/AccountTrade');
 const AJAX  = require('./BinanceAJAX');
 const ChartStream = require('./models/ChartStream');
 const AccountInfoPosition = require('./models/AccountInfoPosition');
-const FuturesOrder = require('binance-sync/src/models/FuturesOrder');
+const FuturesOrder = require('./models/FuturesOrder');
 
 /**
  * @class
