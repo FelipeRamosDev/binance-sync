@@ -262,7 +262,7 @@ class BinanceStreams {
      * @returns {Promise<Object>} Returns a promise with the listenID (string) and the chart (ChartStream).
      */
     async candlestickChart(symbol, interval, options) {
-        const { callbacks, accumulateCandles, CustomChartStream } = Object(options);
+        const { callbacks, accumulateCandles, CustomChartStream, limit } = Object(options);
         
         return new Promise(async (resolve, reject) => {
             try {
@@ -284,7 +284,7 @@ class BinanceStreams {
 
                 const ws = await this.currentCandle(symbol, interval, {
                     open: () => {
-                        const chart = new Chart({ symbol, interval, history, accumulateCandles });
+                        const chart = new Chart({ symbol, interval, history, accumulateCandles, limit });
                         this.parentService.setBuffChart(chart, ws, symbol, interval);
 
                         resolve(this.addChartCallbacks(chart, callbacks));
