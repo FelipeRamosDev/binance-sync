@@ -77,7 +77,7 @@ class AssetData {
      * @returns {number} The minimum price.
      */
     getMinPrice() {
-        return this.getFilter('PRICE_FILTER', 'minPrice').toNumber();
+        return this.getFilter('PRICE_FILTER', 'minPrice').toString();
     }
 
     /**
@@ -85,7 +85,7 @@ class AssetData {
      * @returns {number} The decimal places of the price.
      */
     getPriceDecimalPlaces() {
-        const stringMinPrice = this.getMinPrice().toString();
+        const stringMinPrice = this.getMinPrice();
         const minPriceSplited = stringMinPrice.split('.');
         if (minPriceSplited.length === 1) {
             return 0;
