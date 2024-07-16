@@ -90,7 +90,7 @@ class BinanceAJAX extends Axios {
             queryString.set('recvWindow', 60000);
             queryString.set('timestamp', serverTime);
 
-            Object.keys(Object(params)).map(key => queryString.set(key, params[key]));
+            Object.keys(Object(params)).map(key => params[key] && queryString.set(key, params[key]));
 
             if (this.apiKey && this.apiSecret) {
                 queryString.set('signature', this.generateSignature(queryString));

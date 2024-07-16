@@ -13,7 +13,7 @@
         "futures": {
             "marginType": "isolated",
             "exchangeFee": 0.05,
-            "maxLeverege": 125
+            "maxLeverage": 125
         }
     }
 }
