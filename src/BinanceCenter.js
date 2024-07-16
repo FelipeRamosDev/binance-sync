@@ -60,7 +60,7 @@ class BinanceCenter {
         const ajax = new AJAX(null, null, { baseURL: this.configs.URLS.futuresBase });
         const parsedData = await ajax.GET('/fapi/v1/exchangeInfo');
 
-        this.futuresSymbols = parsedData?.symbols.filter(symbol => symbol.quoteAsset === 'USDT').map(symbol => new AssetData(symbol));
+        this.futuresSymbols = parsedData?.symbols.filter(symbol => symbol.contractType === 'PERPETUAL').map(symbol => new AssetData(symbol));
         this.serverTime = parsedData?.serverTime;
         this.timezone = parsedData?.timezone;
 
