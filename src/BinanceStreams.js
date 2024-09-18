@@ -41,7 +41,7 @@ class BinanceStreams {
      * @return {string} The API key.
      */
     get API_KEY() {
-        return this.parentService.API_KEY;
+        return this.parentService?.API_KEY;
     }
 
     /**
@@ -49,7 +49,7 @@ class BinanceStreams {
      * @return {string} The secret key.
      */
     get SECRET_KEY() {
-        return this.parentService.SECRET_KEY;
+        return this.parentService?.SECRET_KEY;
     }
 
     getUserDataStream(id) {
