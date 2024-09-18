@@ -192,22 +192,23 @@ class ChartStream {
                 emitEvent(this.buildEventName('close'), this);
             }
 
-            listeners?.update && process.off(this.buildEventName('update'), listeners?.update);
-            listeners?.close && process.off(this.buildEventName('close'), listeners?.close);
-            listeners?.error && process.off(this.buildEventName('error'), listeners?.error);
+            listeners?.update && process.removeListener(this.buildEventName('update'), listeners?.update);
+            listeners?.close && process.removeListener(this.buildEventName('close'), listeners?.close);
+            listeners?.error && process.removeListener(this.buildEventName('error'), listeners?.error);
 
             delete this.listeners[listenID];
 
-            if (!listenersLength) {
+            if (!Object.keys(this.listeners).length) {
                 this.close();
             }
         } else {
-            Object.keys(this.listeners).map(listener => {
-                listener?.update && process.off(this.buildEventName('update'), listener?.update);
-                listener?.close && process.off(this.buildEventName('close'), listener?.close);
-                listener?.error && process.off(this.buildEventName('error'), listener?.error);
+            Object.keys(this.listeners).map(key => {
+                const listener = this.listeners[key];
+                listener?.update && process.removeListener(this.buildEventName('update'), listener?.update);
+                listener?.close && process.removeListener(this.buildEventName('close'), listener?.close);
+                listener?.error && process.removeListener(this.buildEventName('error'), listener?.error);
 
-                delete this.listeners[listenID];
+                delete this.listeners[key];
             });
 
             this.close();
@@ -232,8 +233,8 @@ class ChartStream {
             this.listeners[listenID] = {};
         }
 
-        this.listeners[listenID][evName] = callback;
-        appendEvent(this.buildEventName(evName), ({ detail }) => callback(detail));
+        this.listeners[listenID][evName] = ({ detail }) => callback(detail);
+        appendEvent(this.buildEventName(evName), this.listeners[listenID][evName]);
 
         return listenID;
     }
