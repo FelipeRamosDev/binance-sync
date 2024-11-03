@@ -399,8 +399,8 @@ class BinanceSync {
         try {
             const orders = await this.reqHTTP.GET('/fapi/v1/allOrders', { ...filter, symbol });
 
-            if (orders.code && orders.message) {
-                return Error.new(orders.code, orders.message);
+            if (orders.code && orders.msg) {
+                return Error.new(orders.code, orders.msg);
             }
 
             return orders.map(order => new FuturesOrder(order));

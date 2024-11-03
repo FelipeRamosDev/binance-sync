@@ -6,6 +6,7 @@ const AccountConfigUpdate  = require('./models/userDataEvents/AccountConfigUpdat
 const UserStream  = require('./models/userDataEvents/UserStream');
 const ChartStream  = require('./models/ChartStream');
 const appConfigs = require('../configs.json');
+const TradeLite = require('./models/userDataEvents/TradeLite');
 
 /**
  * Representing BinanceStreams, a class with to handle WebSockets streams on Binance API.
@@ -116,6 +117,9 @@ class BinanceStreams {
                         }
                         case 'ACCOUNT_CONFIG_UPDATE': {
                             return onData(new AccountConfigUpdate(input));
+                        }
+                        case 'TRADE_LITE': {
+                            return onData(new TradeLite(input));
                         }
                         case 'listenKeyExpired': {
                             onData(input);
