@@ -5,6 +5,7 @@ const AJAX  = require('./BinanceAJAX');
 const ChartStream = require('./models/ChartStream');
 const AccountInfoPosition = require('./models/AccountInfoPosition');
 const FuturesOrder = require('./models/FuturesOrder');
+const SymbolTickStatistics = require('binance-sync/src/models/SymbolTickStatistics');
 
 /**
  * @class
@@ -206,6 +207,20 @@ class BinanceSync {
             }
 
             return response;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    async tickerPriceChangeStats(symbol) {
+        try {
+            const response = await this.reqHTTP.GET('/fapi/v1/ticker/24hr', { symbol });
+
+            if (response.code && response.msg) {
+                return Error.new(response.code, response.msg);
+            }
+
+            return response.map(item => new SymbolTickStatistics(item));
         } catch (err) {
             throw err;
         }
