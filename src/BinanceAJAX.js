@@ -81,14 +81,14 @@ class BinanceAJAX extends Axios {
      * @returns {Promise<string>} The parsed URL.
      * @throws {Error} If there is an error during parsing.
      */
-    async parseURL(endpoint, params) {
+    parseURL(endpoint, params) {
         const queryString = new URLSearchParams('');
 
         try {
-            const serverTime = await this.getServerTime();
+            const serverTime = new Date(new Date().toUTCString()).getTime();
 
             queryString.set('recvWindow', 60000);
-            queryString.set('timestamp', serverTime);
+            queryString.set('timestamp', serverTime - 3000);
 
             Object.keys(Object(params)).map(key => params[key] && queryString.set(key, params[key]));
 
@@ -116,7 +116,7 @@ class BinanceAJAX extends Axios {
      */
     async GET(endpoint, params) {
         try {
-            const url = await this.parseURL(endpoint, params);
+            const url = this.parseURL(endpoint, params);
             const result = await this.get(url);
 
             return JSON.parse(Object(result.data));
@@ -135,7 +135,7 @@ class BinanceAJAX extends Axios {
      */
     async POST(endpoint, params) {
         try {
-            const url = await this.parseURL(endpoint, params);
+            const url = this.parseURL(endpoint, params);
             const result = await this.post(url);
 
             return JSON.parse(Object(result.data));
@@ -154,7 +154,7 @@ class BinanceAJAX extends Axios {
      */
     async PUT(endpoint, params) {
         try {
-            const url = await this.parseURL(endpoint, params);
+            const url = this.parseURL(endpoint, params);
             const result = await this.put(url);
 
             return JSON.parse(Object(result.data));
@@ -173,7 +173,7 @@ class BinanceAJAX extends Axios {
      */
     async DELETE(endpoint, params) {
         try {
-            const url = await this.parseURL(endpoint, params);
+            const url = this.parseURL(endpoint, params);
             const result = await this.delete(url);
 
             return JSON.parse(Object(result.data));
