@@ -40,6 +40,10 @@ class BinanceAJAX extends Axios {
         return this._API_SECRET();
     }
 
+    get UTCTime() {
+        return new Date(new Date().toUTCString()).getTime();
+    }
+
     /**
      * Generates a signature for a query string using the API secret.
      * @param {string} queryString - The query string to sign.
@@ -85,10 +89,8 @@ class BinanceAJAX extends Axios {
         const queryString = new URLSearchParams('');
 
         try {
-            const serverTime = new Date(new Date().toUTCString()).getTime();
-
             queryString.set('recvWindow', 60000);
-            queryString.set('timestamp', serverTime - 3000);
+            queryString.set('timestamp', this.UTCTime - appConfigs.connections.serverTimeOffset);
 
             Object.keys(Object(params)).map(key => params[key] && queryString.set(key, params[key]));
 
