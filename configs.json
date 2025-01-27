@@ -4,7 +4,8 @@
         "futuresBaseStream": "wss://fstream.binance.com/ws"
     },
     "connections": {
-        "streamPingInterval": 2700000
+        "streamPingInterval": 2700000,
+        "serverTimeOffset": 5000
     },
     "marketTypes": {
         "spot": {
