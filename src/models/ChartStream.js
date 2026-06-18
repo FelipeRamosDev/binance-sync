@@ -233,7 +233,14 @@ class ChartStream {
             this.listeners[listenID] = {};
         }
 
-        this.listeners[listenID][evName] = ({ detail }) => callback(detail);
+        // Browser listeners receive CustomEvent(detail), Node listeners receive payload directly.
+        this.listeners[listenID][evName] = (payload) => {
+            if (payload && typeof payload === 'object' && 'detail' in payload) {
+                return callback(payload.detail);
+            }
+
+            return callback(payload);
+        };
         appendEvent(this.buildEventName(evName), this.listeners[listenID][evName]);
 
         return listenID;
