@@ -1,7 +1,7 @@
 {
     "URLS": {
         "futuresBase": "https://fapi.binance.com",
-        "futuresBaseStream": "wss://fstream.binance.com/ws"
+        "futuresBaseStream": "wss://fstream.binancefuture.com/ws"
     },
     "connections": {
         "streamPingInterval": 2700000,
