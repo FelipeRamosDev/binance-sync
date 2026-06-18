@@ -353,6 +353,7 @@ class BinanceStreams {
         
         if (typeof data === 'function') {
             chart.on('update', data, listenID);
+            data(chart);
         }
         
         if (typeof error === 'function') {
