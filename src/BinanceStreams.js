@@ -266,6 +266,35 @@ class BinanceStreams {
      * @returns {Promise<Object>} Returns a promise with the listenID (string) and the chart (ChartStream).
      */
     async candlestickChart(symbol, interval, options) {
+        const { callbacks } = Object(options);
+        const key = `${symbol}_${interval}`;
+
+        if (!global.binanceSync.pendingCharts) {
+            global.binanceSync.pendingCharts = {};
+        }
+
+        // Concurrent calls while the first chart is still opening must share it, otherwise each one opens its own websocket.
+        const pending = global.binanceSync.pendingCharts[key];
+        if (pending) {
+            const { chart } = await pending;
+            return this.addChartCallbacks(chart, callbacks);
+        }
+
+        const creation = this.createCandlestickChart(symbol, interval, options);
+        global.binanceSync.pendingCharts[key] = creation;
+
+        try {
+            return await creation;
+        } finally {
+            delete global.binanceSync.pendingCharts[key];
+        }
+    }
+
+    /**
+     * Opens the websocket and builds the chart stream. Use candlestickChart instead.
+     * @private
+     */
+    createCandlestickChart(symbol, interval, options) {
         const { callbacks, accumulateCandles, CustomChartStream, limit } = Object(options);
         
         return new Promise(async (resolve, reject) => {

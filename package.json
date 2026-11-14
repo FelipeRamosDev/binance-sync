@@ -1,6 +1,6 @@
 {
   "name": "binance-sync",
-  "version": "0.2.13",
+  "version": "0.2.14",
   "description": "It's a service module to interact with Binance",
   "main": "index.js",
   "scripts": {
